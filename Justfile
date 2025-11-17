@@ -10,7 +10,7 @@ release-build:
     cmake --build build
 
 debug-build:
-    clean
+    rm -rf build
     cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
     cmake --build build
 
