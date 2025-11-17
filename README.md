@@ -1,5 +1,7 @@
 # onion-relay
 
+⚠️Warning: Not implemented yet⚠️
+
 Nostr onion reley
 
 ![icon](https://github.com/user-attachments/assets/6747414b-d35f-4e1e-80ca-be8c039a4055)
