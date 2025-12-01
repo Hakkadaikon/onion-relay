@@ -114,9 +114,11 @@ typedef struct _WebSocketFrame {
     WebSocketOpCode opcode;
     uint8_t         mask;
     uint8_t         payload_len;
+    uint8_t         dummy1[6];
     uint64_t        ext_payload_len;
     uint8_t         masking_key[4];
     char*           payload;
+    uint8_t         dummy2[3];
 } WebSocketFrame, *PWebSocketFrame;
 
 /**
@@ -169,6 +171,7 @@ typedef struct {
  */
 typedef struct {
     int32_t            server_sock;      ///< Socket descriptor obtained by websocket_server_init() function
+    int32_t            dummy;            ///< dummy
     size_t             buffer_capacity;  ///< Capacity of the send and receive buffer for one client.
     WebSocketCallbacks callbacks;        ///< @see WebSocketCallBacks
 } WebSocketLoopArgs, *PWebSocketLoopArgs;

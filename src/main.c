@@ -33,12 +33,12 @@ void websocket_receive_callback(
 
 void websocket_connect_callback(int client_sock)
 {
-    log_info("[user] hello connect");
+    log_info("[user] hello connect\n");
 }
 
 void websocket_disconnect_callback(int client_sock)
 {
-    log_info("[user] bye");
+    log_info("[user] bye\n");
 }
 
 int main()
