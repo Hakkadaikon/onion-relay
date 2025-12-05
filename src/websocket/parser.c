@@ -141,7 +141,7 @@ bool parse_websocket_frame(const char* restrict raw, const size_t capacity, PWeb
   const char* payload_raw = &raw[frame_offset];
   for (size_t i = 0; i < frame->ext_payload_len; i++) {
     frame->payload[i] =
-        payload_raw[i] ^ (frame->mask ? frame->masking_key[i % 4] : 0);
+      payload_raw[i] ^ (frame->mask ? frame->masking_key[i % 4] : 0);
   }
   frame->payload[frame->ext_payload_len] = '\0';
   return true;

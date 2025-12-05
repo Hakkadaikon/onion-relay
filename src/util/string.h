@@ -54,11 +54,11 @@ static inline bool compare(const char a, const char b)
 }
 
 static inline bool is_compare_str(
-    const char*  str1,
-    const char*  str2,
-    const size_t str1capacity,
-    const size_t str2capacity,
-    const bool   case_sensitive)
+  const char*  str1,
+  const char*  str2,
+  const size_t str1capacity,
+  const size_t str2capacity,
+  const bool   case_sensitive)
 {
   size_t capacity = (str1capacity > str2capacity) ? str2capacity : str1capacity;
   if (capacity == 0) {

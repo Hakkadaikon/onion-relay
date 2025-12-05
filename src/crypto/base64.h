@@ -29,13 +29,13 @@ static inline bool base64_encode(const uint8_t* input, const size_t input_length
   }
 
   for (
-      input_offset = 0, output_offset = 0;
-      (input_offset < input_length) && (output_offset < output_capacity - base64_output_block_size);
-      input_offset += base64_input_block_size, output_offset += base64_output_block_size) {
+    input_offset = 0, output_offset = 0;
+    (input_offset < input_length) && (output_offset < output_capacity - base64_output_block_size);
+    input_offset += base64_input_block_size, output_offset += base64_output_block_size) {
     uint32_t marge =
-        (base64_get_array_value(input, input_offset + 0, input_length) << 16) |
-        (base64_get_array_value(input, input_offset + 1, input_length) << 8) |
-        (base64_get_array_value(input, input_offset + 2, input_length) << 0);
+      (base64_get_array_value(input, input_offset + 0, input_length) << 16) |
+      (base64_get_array_value(input, input_offset + 1, input_length) << 8) |
+      (base64_get_array_value(input, input_offset + 2, input_length) << 0);
 
     output[output_offset + 0] = base64_chars[base64_out_char_index(marge, 0)];
     output[output_offset + 1] = base64_chars[base64_out_char_index(marge, 1)];

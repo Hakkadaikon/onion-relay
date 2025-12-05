@@ -179,16 +179,16 @@ static inline char* select_websocket_client_key(PHTTPRequest restrict request)
 }
 
 static inline bool build_response_frame(
-    const char* restrict accept_key,
-    const int32_t accept_key_capacity,
-    char* restrict buffer,
-    const size_t capacity)
+  const char* restrict accept_key,
+  const int32_t accept_key_capacity,
+  char* restrict buffer,
+  const size_t capacity)
 {
   const char OK_MESSAGE[] =
-      "HTTP/1.1 101 Switching Protocols\r\n"
-      "Upgrade: websocket\r\n"
-      "Connection: Upgrade\r\n"
-      "Sec-WebSocket-Accept: ";
+    "HTTP/1.1 101 Switching Protocols\r\n"
+    "Upgrade: websocket\r\n"
+    "Connection: Upgrade\r\n"
+    "Sec-WebSocket-Accept: ";
   const size_t OK_MESSAGE_LEN    = sizeof(OK_MESSAGE) - 1;
   const size_t ACCEPT_KEY_LEN    = get_str_nlen(accept_key, accept_key_capacity);
   const size_t REQUIRED_CAPACITY = OK_MESSAGE_LEN + ACCEPT_KEY_LEN + 5;
@@ -211,10 +211,10 @@ static inline bool build_response_frame(
 }
 
 bool client_handshake(
-    const int32_t       client_sock,
-    const size_t        bytes_read,
-    PWebSocketRawBuffer buffer,
-    PHTTPRequest restrict request)
+  const int32_t       client_sock,
+  const size_t        bytes_read,
+  PWebSocketRawBuffer buffer,
+  PHTTPRequest restrict request)
 {
   bool has_error = false;
 

@@ -5,11 +5,11 @@
 #include "../../../websocket_local.h"
 
 static inline bool accept_handle(
-    const int32_t        epoll_fd,
-    const int32_t        server_sock,
-    PWebSocketRawBuffer  buffer,
-    PWebSocketEpollEvent event,
-    PWebSocketCallbacks  callbacks)
+  const int32_t        epoll_fd,
+  const int32_t        server_sock,
+  PWebSocketRawBuffer  buffer,
+  PWebSocketEpollEvent event,
+  PWebSocketCallbacks  callbacks)
 {
   HTTPRequest request;
   ssize_t     bytes_read;

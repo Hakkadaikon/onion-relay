@@ -31,8 +31,8 @@ typedef struct {
 } HTTPRequest, *PHTTPRequest;
 
 bool extract_http_request(
-    const char*  buffer,
-    const size_t buffer_size,
-    PHTTPRequest request);
+  const char*  buffer,
+  const size_t buffer_size,
+  PHTTPRequest request);
 
 #endif

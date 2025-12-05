@@ -57,7 +57,7 @@ static inline int32_t linux_x8664_memset_s(void* s, const size_t smax, const int
       linux_x8664_memset(s, c, smax);
       // Compiler barrier to prevent optimization removal
       __asm__ volatile("" ::
-                           : "memory");
+                         : "memory");
     }
     return EINVAL;
   }
@@ -66,7 +66,7 @@ static inline int32_t linux_x8664_memset_s(void* s, const size_t smax, const int
   linux_x8664_memset(s, c, n);
   // Compiler barrier to prevent optimization removal
   __asm__ volatile("" ::
-                       : "memory");
+                     : "memory");
 
   return 0;
 }

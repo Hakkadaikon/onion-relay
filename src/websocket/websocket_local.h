@@ -36,10 +36,10 @@ typedef enum {
 /*----------------------------------------------------------------------------*/
 
 bool client_handshake(
-    const int32_t       client_sock,
-    const size_t        bytes_read,
-    PWebSocketRawBuffer buffer,
-    PHTTPRequest        request);
+  const int32_t       client_sock,
+  const size_t        bytes_read,
+  PWebSocketRawBuffer buffer,
+  PHTTPRequest        request);
 
 /*----------------------------------------------------------------------------*/
 /* websocket/crypto.c                                                         */

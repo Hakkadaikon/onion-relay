@@ -5,10 +5,10 @@
 #include "../../../websocket_local.h"
 
 static inline int32_t opcode_handle(
-    const int32_t       client_sock,
-    PWebSocketRawBuffer buffer,
-    PWebSocketCallbacks callbacks,
-    PWebSocketFrame     frame)
+  const int32_t       client_sock,
+  PWebSocketRawBuffer buffer,
+  PWebSocketCallbacks callbacks,
+  PWebSocketFrame     frame)
 {
   switch (frame->opcode) {
     case WEBSOCKET_OP_CODE_TEXT:

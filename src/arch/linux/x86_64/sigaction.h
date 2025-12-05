@@ -15,11 +15,11 @@ static inline int32_t linux_x8664_sigaction(const int32_t signum, struct sigacti
   act->sa_restorer = &linux_x8664_restore_rt;
 
   int32_t ret = linux_x8664_asm_syscall4(
-      __NR_rt_sigaction,
-      signum,
-      act,
-      oldact,
-      sizeof(sigset_t));
+    __NR_rt_sigaction,
+    signum,
+    act,
+    oldact,
+    sizeof(sigset_t));
 
   // var_dump_local(1, "sigaction ret:", ret);
   // var_dump_local(1, "signum:", signum);

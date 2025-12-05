@@ -125,17 +125,17 @@ typedef struct _WebSocketFrame {
  * @brief User callback that is called when a WebSocket frame is received.
  */
 typedef void (*PWebSocketReceiveCallback)(
-    const int32_t   client_sock,      ///< @param[in]     client_sock     Client socket that sent the data
-    PWebSocketFrame frame,            ///< @param[in]     frame           Parsed websocket frame
-    const size_t    buffer_capacity,  ///< @param[in]     buffer_capacity Response_buffer capacity.
-    char*           response_buffer   ///< @param[in/out] response_buffer This buffer must be used to create the return frame.
+  const int32_t   client_sock,      ///< @param[in]     client_sock     Client socket that sent the data
+  PWebSocketFrame frame,            ///< @param[in]     frame           Parsed websocket frame
+  const size_t    buffer_capacity,  ///< @param[in]     buffer_capacity Response_buffer capacity.
+  char*           response_buffer   ///< @param[in/out] response_buffer This buffer must be used to create the return frame.
 );
 
 /**
  * @brief User callback to be called when connection is established
  */
 typedef void (*PWebSocketConnectCallback)(
-    const int32_t client_sock  ///< @param[in] client_sock Client socket to connect
+  const int32_t client_sock  ///< @param[in] client_sock Client socket to connect
 );
 
 /**
@@ -146,7 +146,7 @@ typedef void (*PWebSocketConnectCallback)(
  * It is passed to identify the client and release resources if they have been allocated.
  */
 typedef void (*PWebSocketDisconnectCallback)(
-    const int32_t client_sock  ///< @param[in] client_sock Client socket to disconnect
+  const int32_t client_sock  ///< @param[in] client_sock Client socket to disconnect
 );
 
 /**

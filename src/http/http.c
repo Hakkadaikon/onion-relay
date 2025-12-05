@@ -3,10 +3,10 @@
 #include "../util/string.h"
 
 static inline size_t extract_keyword(
-    const char* restrict buffer,
-    const size_t buffer_size,
-    const char   token,
-    char* restrict output)
+  const char* restrict buffer,
+  const size_t buffer_size,
+  const char   token,
+  char* restrict output)
 {
   int32_t keyword_length = skip_token(buffer, buffer_size, token);
   if (keyword_length == -1) {
@@ -19,9 +19,9 @@ static inline size_t extract_keyword(
 }
 
 static inline bool extract_http_request_line(
-    const char* restrict buffer,
-    const size_t buffer_size,
-    PHTTPRequestLine restrict line)
+  const char* restrict buffer,
+  const size_t buffer_size,
+  PHTTPRequestLine restrict line)
 {
   size_t  remain_buffer_size = buffer_size;
   int32_t keyword_length;
@@ -52,9 +52,9 @@ static inline bool extract_http_request_line(
 }
 
 static inline bool extract_http_request_header_line(
-    const char* restrict buffer,
-    const size_t buffer_size,
-    PHTTPRequestHeaderLine restrict line)
+  const char* restrict buffer,
+  const size_t buffer_size,
+  PHTTPRequestHeaderLine restrict line)
 {
   size_t  remain_buffer_size = buffer_size;
   int32_t keyword_length;
@@ -77,10 +77,10 @@ static inline bool extract_http_request_header_line(
 }
 
 bool extract_http_request_header(
-    const char* restrict buffer,
-    const size_t          buffer_size,
-    size_t*               header_size,
-    HTTPRequestHeaderLine lines[])
+  const char* restrict buffer,
+  const size_t          buffer_size,
+  size_t*               header_size,
+  HTTPRequestHeaderLine lines[])
 {
   size_t buffer_pos         = 0;
   size_t header_pos         = 0;
@@ -115,14 +115,14 @@ bool extract_http_request_header(
 }
 
 bool extract_http_request(
-    const char* restrict buffer,
-    const size_t buffer_size,
-    PHTTPRequest restrict request)
+  const char* restrict buffer,
+  const size_t buffer_size,
+  PHTTPRequest restrict request)
 {
   if (
-      is_null(buffer) ||
-      is_null((char*)request->headers) ||
-      buffer_size <= 0) {
+    is_null(buffer) ||
+    is_null((char*)request->headers) ||
+    buffer_size <= 0) {
     return false;
   }
 
@@ -138,10 +138,10 @@ bool extract_http_request(
   remain_buffer_size -= new_pos;
 
   if (!extract_http_request_header(
-          &buffer[new_pos],
-          remain_buffer_size,
-          &request->header_size,
-          request->headers)) {
+        &buffer[new_pos],
+        remain_buffer_size,
+        &request->header_size,
+        request->headers)) {
     return false;
   }
 

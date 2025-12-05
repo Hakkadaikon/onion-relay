@@ -6,9 +6,9 @@
 #include "receive_handle.h"
 
 static inline int32_t epoll_receive(
-    const PWebSocketEpollLoopArgs epoll_args,
-    PWebSocketRawBuffer           buffer,
-    PWebSocketCallbacks           callbacks)
+  const PWebSocketEpollLoopArgs epoll_args,
+  PWebSocketRawBuffer           buffer,
+  PWebSocketCallbacks           callbacks)
 {
   int32_t code = websocket_epoll_rise_error(epoll_args->event);
   if (code != WEBSOCKET_ERRORCODE_NONE) {

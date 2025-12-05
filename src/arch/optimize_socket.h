@@ -9,11 +9,11 @@ static inline int32_t internal_fcntl(const int32_t fd, const int32_t cmd, const 
 }
 
 static inline int32_t internal_setsockopt(
-    const int32_t   sock_fd,
-    const int32_t   level,
-    const int32_t   optname,
-    const void*     optval,
-    const socklen_t optlen)
+  const int32_t   sock_fd,
+  const int32_t   level,
+  const int32_t   optname,
+  const void*     optval,
+  const socklen_t optlen)
 {
   return linux_x8664_setsockopt(sock_fd, level, optname, optval, optlen);
 }

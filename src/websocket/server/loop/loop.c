@@ -61,11 +61,11 @@ bool websocket_server_loop(PWebSocketLoopArgs args)
 
       if (fd == args->server_sock) {
         if (epoll_accept(
-                &epoll_args,
-                args->server_sock,
-                &buffer,
-                &register_event,
-                &args->callbacks) == WEBSOCKET_ERRORCODE_FATAL_ERROR) {
+              &epoll_args,
+              args->server_sock,
+              &buffer,
+              &register_event,
+              &args->callbacks) == WEBSOCKET_ERRORCODE_FATAL_ERROR) {
           log_debug("accept error. go to finalize...\n");
           goto FINALIZE;
         }

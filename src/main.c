@@ -1,10 +1,10 @@
 #include "./websocket/websocket.h"
 
 void websocket_callback_echoback(
-    const int       client_sock,
-    PWebSocketFrame frame,
-    const size_t    buffer_capacity,
-    char*           response_buffer)
+  const int       client_sock,
+  PWebSocketFrame frame,
+  const size_t    buffer_capacity,
+  char*           response_buffer)
 {
   switch (frame->opcode) {
     case WEBSOCKET_OP_CODE_TEXT: {
@@ -23,10 +23,10 @@ void websocket_callback_echoback(
 }
 
 void websocket_receive_callback(
-    const int       client_sock,
-    PWebSocketFrame frame,
-    const size_t    buffer_capacity,
-    char*           response_buffer)
+  const int       client_sock,
+  PWebSocketFrame frame,
+  const size_t    buffer_capacity,
+  char*           response_buffer)
 {
   websocket_callback_echoback(client_sock, frame, buffer_capacity, response_buffer);
 }
