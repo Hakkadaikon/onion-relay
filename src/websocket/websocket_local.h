@@ -35,9 +35,11 @@ typedef enum {
 /* websocket/server/handshake.c                                               */
 /*----------------------------------------------------------------------------*/
 
+bool is_valid_request(PHTTPRequest request);
+bool is_valid_request_header(PHTTPRequestHeaderLine headers, size_t header_size);
+bool is_valid_request_line(PHTTPRequestLine line);
 bool client_handshake(
   const int32_t       client_sock,
-  const size_t        bytes_read,
   PWebSocketRawBuffer buffer,
   PHTTPRequest        request);
 

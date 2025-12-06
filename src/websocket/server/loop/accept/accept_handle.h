@@ -32,7 +32,7 @@ static inline bool accept_handle(
     goto FINALIZE;
   }
 
-  log_debug("Read to handshake message...\n");
+  log_debug("Read to message...\n");
   while (1) {
     bytes_read = websocket_recv(client_sock, buffer->capacity, buffer->request);
     if (bytes_read < 0) {
@@ -41,7 +41,7 @@ static inline bool accept_handle(
       }
 
       err = true;
-      var_info("Failed to handshake message read.\n", client_sock);
+      var_info("Failed to message read.\n", client_sock);
       websocket_epoll_del(epoll_fd, client_sock);
       goto FINALIZE;
     }
@@ -49,8 +49,13 @@ static inline bool accept_handle(
     break;
   }
 
-  log_debug("Analyze to handshake message...\n");
-  if (!client_handshake(client_sock, bytes_read, buffer, &request)) {
+  log_debug("Analyze to message...\n");
+  if (!extract_http_request(buffer->request, bytes_read, &request)) {
+    err = true;
+    goto FINALIZE;
+  }
+
+  if (!client_handshake(client_sock, buffer, &request)) {
     websocket_epoll_del(epoll_fd, client_sock);
     err = true;
     goto FINALIZE;
