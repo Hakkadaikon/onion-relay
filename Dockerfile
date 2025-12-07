@@ -1,4 +1,4 @@
-FROM debian:bookworm-slim AS build-dev
+FROM ubuntu:24.04 AS build-dev
 WORKDIR /opt/relay
 COPY . /opt/relay
 RUN \
