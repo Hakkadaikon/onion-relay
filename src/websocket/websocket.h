@@ -3,14 +3,14 @@
 
 /** @file  websocket.h
  *
- * @brief Parses each parameter of a websocket frame stored in network byte order.
+ * @brief Parses each parameter of a websocket packet stored in network byte order.
  * @see RFC6455 (https://datatracker.ietf.org/doc/html/rfc6455)
  */
 #include "../util/types.h"
 
 /**
  * @enum WebSocketOpCode
- * @brief WebSocket frame type
+ * @brief websocket packet type
  */
 typedef enum {
   WEBSOCKET_OP_CODE_TEXT   = 0x1,  ///< When this frame is received, Invokes the user callback.
@@ -31,9 +31,9 @@ typedef enum {
 } WebSocketErrorCode;
 
 /**
- * @brief Result of parsing the WebSocket frame
+ * @brief Result of parsing the websocket packet
  */
-typedef struct _WebSocketFrame {
+typedef struct _WebSocketEntity {
   uint8_t         fin;
   uint8_t         rsv1;
   uint8_t         rsv2;
@@ -46,16 +46,16 @@ typedef struct _WebSocketFrame {
   uint8_t         masking_key[4];
   char*           payload;
   uint8_t         dummy2[3];
-} WebSocketFrame, *PWebSocketFrame;
+} WebSocketEntity, *PWebSocketEntity;
 
 /**
- * @brief User callback that is called when a WebSocket frame is received.
+ * @brief User callback that is called when a websocket packet is received.
  */
 typedef void (*PWebSocketReceiveCallback)(
-  const int32_t   client_sock,      ///< @param[in]     client_sock     Client socket that sent the data
-  PWebSocketFrame frame,            ///< @param[in]     frame           Parsed websocket frame
-  const size_t    buffer_capacity,  ///< @param[in]     buffer_capacity Response_buffer capacity.
-  char*           response_buffer   ///< @param[in/out] response_buffer This buffer must be used to create the return frame.
+  const int32_t    client_sock,      ///< @param[in]     client_sock     Client socket that sent the data
+  PWebSocketEntity entity,           ///< @param[in]     enttity         Parsed websocket packet
+  const size_t     buffer_capacity,  ///< @param[in]     buffer_capacity Response_buffer capacity.
+  char*            response_buffer   ///< @param[in/out] response_buffer This buffer must be used to create the return packet.
 );
 
 /**
@@ -107,23 +107,23 @@ typedef struct {
  * @brief Parse raw data in network byte order into a websocket flame structure
  *
  * @param[in]  raw         raw data (network byte order)
- * @param[in]  frame_size  Size of webSocket frame
- * @param[out] frame       Output destination of parsed frame
+ * @param[in]  packet_size Size of webSocket packet
+ * @param[out] entity      Output destination of parsed packet
  *
  * @return true: Parse was successful / false: Failed parse
  */
-bool parse_websocket_frame(const char* raw, const size_t frame_size, PWebSocketFrame frame);
+bool to_websocket_entity(const char* raw, const size_t packet_size, PWebSocketEntity entity);
 
 /**
  * @brief Creates raw data to send back to the client
  *
- * @param[in]  frame    Transmitted frame before it becomes raw data
+ * @param[in]  entity   Transmitted frame before it becomes raw data
  * @param[in]  capacity Raw data capacity
- * @param[out] raw      Raw data frame to be returned
+ * @param[out] raw      Raw data packet to be returned
  *
  * @return Size of raw data. If parsing fails, 0 is returned.
  */
-size_t create_websocket_frame(PWebSocketFrame frame, const size_t capacity, char* raw);
+size_t to_websocket_packet(PWebSocketEntity entity, const size_t capacity, char* raw);
 
 /**
  * @brief Initialize a WebSocket server. socket listen and register signal handler.

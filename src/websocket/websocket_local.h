@@ -4,7 +4,7 @@
 /**
  * @file  websocket_local.h
  *
- * @brief Parses each parameter of a websocket frame stored in network byte order.
+ * @brief Parses each parameter of a websocket packet stored in network byte order.
  * @see RFC6455 (https://datatracker.ietf.org/doc/html/rfc6455)
  */
 
@@ -78,7 +78,7 @@ int32_t websocket_epoll_rise_input(PWebSocketEpollEvent event);
 /* websocket/internal_log.c                                                   */
 /*----------------------------------------------------------------------------*/
 
-void websocket_frame_dump(PWebSocketFrame frame);
+void websocket_packet_dump(PWebSocketEntity entity);
 void websocket_epoll_event_dump(const int32_t events);
 
 #endif

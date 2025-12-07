@@ -11,21 +11,21 @@ static inline int32_t receive_handle(
   PWebSocketRawBuffer buffer,
   PWebSocketCallbacks callbacks)
 {
-  WebSocketFrame frame;
-  websocket_memset(&frame, 0x00, sizeof(frame));
+  WebSocketEntity entity;
+  websocket_memset(&entity, 0x00, sizeof(entity));
 
-  frame.payload = (char*)websocket_alloc(read_size);
+  entity.payload = (char*)websocket_alloc(read_size);
 
   int32_t rtn = 0;
 
-  if (!parse_websocket_frame(buffer->request, read_size, &frame)) {
+  if (!to_websocket_entity(buffer->request, read_size, &entity)) {
     rtn = WEBSOCKET_ERRORCODE_CONTINUABLE_ERROR;
     goto FINALIZE;
   }
 
-  websocket_frame_dump(&frame);
+  websocket_packet_dump(&entity);
 
-  rtn = opcode_handle(client_sock, buffer, callbacks, &frame);
+  rtn = opcode_handle(client_sock, buffer, callbacks, &entity);
   if (rtn != WEBSOCKET_ERRORCODE_NONE) {
     goto FINALIZE;
   }

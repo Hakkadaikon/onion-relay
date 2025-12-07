@@ -2,21 +2,21 @@
 #include "websocket/websocket.h"
 
 void websocket_callback_echoback(
-  const int       client_sock,
-  PWebSocketFrame frame,
-  const size_t    buffer_capacity,
-  char*           response_buffer)
+  const int        client_sock,
+  PWebSocketEntity entity,
+  const size_t     buffer_capacity,
+  char*            response_buffer)
 {
-  switch (frame->opcode) {
+  switch (entity->opcode) {
     case WEBSOCKET_OP_CODE_TEXT: {
-      frame->mask       = 0;
-      size_t frame_size = create_websocket_frame(frame, buffer_capacity, response_buffer);
-      if (frame_size == 0) {
-        log_error("Failed to create websocket frame.\n");
+      entity->mask       = 0;
+      size_t packet_size = to_websocket_packet(entity, buffer_capacity, response_buffer);
+      if (packet_size == 0) {
+        log_error("Failed to create websocket packet.\n");
         return;
       }
 
-      websocket_send(client_sock, frame_size, response_buffer);
+      websocket_send(client_sock, packet_size, response_buffer);
     } break;
     default:
       break;
@@ -24,12 +24,12 @@ void websocket_callback_echoback(
 }
 
 void websocket_receive_callback(
-  const int       client_sock,
-  PWebSocketFrame frame,
-  const size_t    buffer_capacity,
-  char*           response_buffer)
+  const int        client_sock,
+  PWebSocketEntity entity,
+  const size_t     buffer_capacity,
+  char*            response_buffer)
 {
-  websocket_callback_echoback(client_sock, frame, buffer_capacity, response_buffer);
+  websocket_callback_echoback(client_sock, entity, buffer_capacity, response_buffer);
 }
 
 void websocket_connect_callback(int client_sock)

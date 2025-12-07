@@ -1,16 +1,16 @@
 #include "websocket_local.h"
 
-void websocket_frame_dump(PWebSocketFrame restrict frame)
+void websocket_packet_dump(PWebSocketEntity restrict entity)
 {
-  var_debug("fin             : ", frame->fin);
-  var_debug("rsv1            : ", frame->rsv1);
-  var_debug("rsv2            : ", frame->rsv2);
-  var_debug("rsv3            : ", frame->rsv3);
-  var_debug("opcode          : ", frame->opcode);
-  var_debug("mask            : ", frame->mask);
-  var_debug("payload_len     : ", frame->payload_len);
-  var_debug("ext_payload_len : ", frame->ext_payload_len);
-  str_debug("payload         : ", frame->payload);
+  var_debug("fin             : ", entity->fin);
+  var_debug("rsv1            : ", entity->rsv1);
+  var_debug("rsv2            : ", entity->rsv2);
+  var_debug("rsv3            : ", entity->rsv3);
+  var_debug("opcode          : ", entity->opcode);
+  var_debug("mask            : ", entity->mask);
+  var_debug("payload_len     : ", entity->payload_len);
+  var_debug("ext_payload_len : ", entity->ext_payload_len);
+  str_debug("payload         : ", entity->payload);
 }
 
 void websocket_epoll_event_dump(const int32_t events)
