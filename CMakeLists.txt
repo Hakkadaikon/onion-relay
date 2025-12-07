@@ -9,8 +9,24 @@ endif()
 
 file(GLOB_RECURSE SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c")
 file(GLOB_RECURSE ASM_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.S")
-set(DEBUG_COMPILE_OPTIONS "-O0" "-static-libasan" "-fno-builtin" "-g")
-set(RELEASE_COMPILE_OPTIONS "-O3" "-mtune=native" "-ffast-math" "-fno-math-errno" "-fno-builtin" "-falign-functions")
+set(
+  DEBUG_COMPILE_OPTIONS
+  "-O0"
+  "-static-libasan"
+  "-fno-builtin"
+  "-std=c2x"
+  "-g"
+)
+set(
+  RELEASE_COMPILE_OPTIONS
+  "-O3"
+  "-mtune=native"
+  "-ffast-math"
+  "-fno-math-errno"
+  "-fno-builtin"
+  "-std=c2x"
+  "-falign-functions"
+)
 
 # Create the static library target including C and assembly files
 #add_executable(relay ${SRC_FILES} ${ASM_FILES})
