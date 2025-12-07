@@ -33,7 +33,7 @@ typedef enum {
 } WebSocketSysCallErrorCode;
 
 /*----------------------------------------------------------------------------*/
-/* websocket/server/handshake.c                                               */
+/* websocket/server/handshake                                                 */
 /*----------------------------------------------------------------------------*/
 
 bool is_valid_request(PHTTPRequest request);
