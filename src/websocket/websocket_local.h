@@ -10,6 +10,7 @@
 
 #include "../arch/linux/epoll.h"
 #include "../http/http.h"
+#include "../util/log.h"
 #include "../util/signal.h"
 #include "../util/string.h"
 #include "websocket.h"

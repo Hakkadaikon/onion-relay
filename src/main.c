@@ -1,4 +1,5 @@
-#include "./websocket/websocket.h"
+#include "util/log.h"
+#include "websocket/websocket.h"
 
 void websocket_callback_echoback(
   const int       client_sock,

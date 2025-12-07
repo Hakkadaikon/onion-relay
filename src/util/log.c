@@ -1,5 +1,6 @@
+#include "log.h"
+
 #include "../arch/write.h"
-#include "../websocket/websocket.h"
 #include "./string.h"
 
 static inline int32_t calc_digit(int32_t value)
