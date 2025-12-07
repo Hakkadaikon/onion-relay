@@ -46,7 +46,7 @@ just release-build
 
 ### Platform
 
-- Linux : Ubuntu (24.04)
+- Linux : Ubuntu (24.04) x86_64 only
 
 ## Dependencies
 
