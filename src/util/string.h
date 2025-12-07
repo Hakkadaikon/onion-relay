@@ -2,10 +2,6 @@
 #define NOSTR_STRING_H_
 
 #include "../util/types.h"
-#ifdef __APPLE__
-#include <stddef.h>
-#else
-#endif
 
 #define ptr_value(ptr) (*ptr)
 #define is_null(str) (str == NULL)

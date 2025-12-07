@@ -1,5 +1,3 @@
-#ifndef __APPLE__
-
 #include "../../arch/epoll.h"
 
 #include "../websocket_local.h"
@@ -104,5 +102,3 @@ int32_t websocket_epoll_rise_input(PWebSocketEpollEvent event)
 
   return WEBSOCKET_ERRORCODE_NONE;
 }
-
-#endif

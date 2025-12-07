@@ -74,14 +74,12 @@ static inline int32_t optimize_server_socket(int32_t server_sock)
   }
 #endif
 
-#ifndef __APPLE__
   param = 5;
   if (internal_setsockopt(server_sock, IPPROTO_TCP, TCP_FASTOPEN, &param, sizeof(param)) == WEBSOCKET_SYSCALL_ERROR) {
     str_error("Failed to setsockopt[IPPROTO_TCP/TCP_FASTOPEN] reason : ", strerror(errno));
     rtn = WEBSOCKET_ERRORCODE_FATAL_ERROR;
     goto FINALIZE;
   }
-#endif
 
 FINALIZE:
   return rtn;

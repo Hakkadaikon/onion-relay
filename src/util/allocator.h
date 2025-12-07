@@ -2,20 +2,12 @@
 #define NOSTR_ALLOCATOR_H_
 
 #include "./types.h"
-#ifdef __APPLE__
-#include <alloca.h>
-#include <errno.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>  // for memset
-#else
 #include "../arch/linux/errno.h"
 // extern void* alloca(size_t __size);
 #undef alloca
 #undef __alloca
 #define alloca(size) __alloca(size)
 #define __alloca(size) __builtin_alloca(size)
-#endif
 #include "../arch/memory.h"
 
 #define ALLOCATE_STACK

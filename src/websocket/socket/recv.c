@@ -2,9 +2,7 @@
 
 #include "../websocket_local.h"
 
-#ifndef __APPLE__
 #define MSG_DONTWAIT 0x40
-#endif
 
 static int32_t get_recv_err(const ssize_t bytes_read, const int32_t sock_fd);
 
