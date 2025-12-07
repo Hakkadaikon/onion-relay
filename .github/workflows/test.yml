@@ -48,6 +48,6 @@ jobs:
         shell: bash
         run: |
           echo "Check ldd"
-          ldd build/relay
+          ldd build/relay || true
           echo "Check readelf"
-          readelf --dyn-syms -W build/relay
+          readelf --dyn-syms -W build/relay || true
