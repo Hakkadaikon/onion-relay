@@ -18,7 +18,7 @@ A high-performance, single-binary Nostr relay written in C.
 ## Build
 
 ```shell
-git clone git@github.com:Hakkadaikon/onion-relay.git
+git clone git@github.com:Hakkadaikon/libelay.git
 cd libelay
 
 # debug build
