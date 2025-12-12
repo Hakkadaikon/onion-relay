@@ -13,7 +13,7 @@ _Yes... even "libc"._
 
 A high-performance, single-binary Nostr relay written in C.
 
-![icon](https://github.com/user-attachments/assets/6747414b-d35f-4e1e-80ca-be8c039a4055)
+![icon](https://github.com/user-attachments/assets/20edb24c-7791-4666-ad41-a25441967d91)
 
 ## Build
 
