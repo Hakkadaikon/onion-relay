@@ -97,12 +97,11 @@ JSMN_API void jsmn_init(jsmn_parser* parser);
  * a single JSON object.
  */
 JSMN_API int jsmn_parse(
-  jsmn_parser* parser,
-  const char* js,
-  const size_t len,
-  jsmntok_t* tokens,
-  const unsigned int num_tokens
-);
+  jsmn_parser*       parser,
+  const char*        js,
+  const size_t       len,
+  jsmntok_t*         tokens,
+  const unsigned int num_tokens);
 
 #ifndef JSMN_HEADER
 /**
@@ -110,9 +109,8 @@ JSMN_API int jsmn_parse(
  */
 static jsmntok_t* jsmn_alloc_token(
   jsmn_parser* parser,
-  jsmntok_t* tokens,
-  const size_t num_tokens
-)
+  jsmntok_t*   tokens,
+  const size_t num_tokens)
 {
   jsmntok_t* tok;
   if (parser->toknext >= num_tokens) {
@@ -131,11 +129,10 @@ static jsmntok_t* jsmn_alloc_token(
  * Fills token type and boundaries.
  */
 static void jsmn_fill_token(
-  jsmntok_t* token,
+  jsmntok_t*       token,
   const jsmntype_t type,
-  const int start,
-  const int end
-)
+  const int        start,
+  const int        end)
 {
   token->type  = type;
   token->start = start;
@@ -148,11 +145,10 @@ static void jsmn_fill_token(
  */
 static int jsmn_parse_primitive(
   jsmn_parser* parser,
-  const char* js,
+  const char*  js,
   const size_t len,
-  jsmntok_t* tokens,
-  const size_t num_tokens
-)
+  jsmntok_t*   tokens,
+  const size_t num_tokens)
 {
   jsmntok_t* token;
   int        start;
@@ -211,11 +207,10 @@ found:
  */
 static int jsmn_parse_string(
   jsmn_parser* parser,
-  const char* js,
+  const char*  js,
   const size_t len,
-  jsmntok_t* tokens,
-  const size_t num_tokens
-)
+  jsmntok_t*   tokens,
+  const size_t num_tokens)
 {
   jsmntok_t* token;
 
@@ -290,12 +285,11 @@ static int jsmn_parse_string(
  * Parse JSON string and fill tokens.
  */
 JSMN_API int jsmn_parse(
-  jsmn_parser* parser,
-  const char* js,
-  const size_t len,
-  jsmntok_t* tokens,
-  const unsigned int num_tokens
-)
+  jsmn_parser*       parser,
+  const char*        js,
+  const size_t       len,
+  jsmntok_t*         tokens,
+  const unsigned int num_tokens)
 {
   int        r;
   int        i;
