@@ -5,20 +5,51 @@
 
 #define value(ptr) (*ptr)
 #define is_null(str) (str == NULL)
-#define is_empty_value(c) (c == '\0')
-#define is_empty(str) (is_empty_value(value(str)))
-#define is_null_or_empty(str) (is_null(str) || is_empty(str))
-#define is_line_break(c) ((c == '\r') || (c == '\n'))
-#define is_space(c) \
-  ((c == ' ') ||    \
-   (c == '\t') ||   \
-   (c == '\r') ||   \
-   (c == '\n') ||   \
-   (c == '\v') ||   \
-   (c == '\f'))
-#define is_lower(c) ((c >= 'a') && (c <= 'z'))
-#define is_upper(c) ((c >= 'A') && (c <= 'Z'))
-#define is_digit(c) ((c >= '0') && (c <= '9'))
+
+static inline bool is_empty_value(const char c)
+{
+  return (c == '\0');
+}
+
+static inline bool is_empty(const char* str)
+{
+  return (is_empty_value(value(str)));
+}
+
+static inline bool is_null_or_empty(const char* str)
+{
+  return (is_null(str) || is_empty(str));
+}
+
+static inline bool is_line_break(const char c)
+{
+  return ((c == '\r') || (c == '\n'));
+}
+
+static inline bool is_space(const char c)
+{
+  return ((c == ' ') ||
+          (c == '\t') ||
+          (c == '\r') ||
+          (c == '\n') ||
+          (c == '\v') ||
+          (c == '\f'));
+}
+
+static inline bool is_lower(char c)
+{
+  return ((c >= 'a') && (c <= 'z'));
+}
+
+static inline bool is_upper(char c)
+{
+  return ((c >= 'A') && (c <= 'Z'));
+}
+
+static inline bool is_digit(char c)
+{
+  return ((c >= '0') && (c <= '9'));
+}
 
 static inline bool is_utf8_space(const char* str)
 {

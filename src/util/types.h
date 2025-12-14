@@ -98,4 +98,6 @@ typedef uint64_t clock_t;
 #endif
 #endif
 
+#define ALIGN_UP_8(size) ((size + 7) & ~(size_t)(7))
+
 #endif
