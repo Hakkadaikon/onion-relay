@@ -3,4 +3,6 @@
 
 #include "nostr_types.h"
 
+bool json_to_nostr_event(const char* json, PNostrEvent event);
+
 #endif
