@@ -1,4 +1,3 @@
-#define JSMN_HEADER
 #include "json_wrapper.h"
 
 #include "jsmn.h"

@@ -1,6 +1,5 @@
 #include "nostr_func.h"
 
-#include "../json/json_wrapper.h"
 #include "../util/log.h"
 #include "../util/string.h"
 #include "nostr_types.h"
@@ -60,19 +59,10 @@ bool json_to_nostr_event(const char* json, PNostrEvent event)
     }
 
     if (funcs.strncmp(json, &token[key_index], "id", 2)) {
-      if (!funcs.is_string(&token[value_index])) {
-        log_debug("Nostr Event Error: id is not string\n");
-        return false;
-      }
+      log_debug("id found\n");
 
-      size_t id_len = funcs.get_token_length(&token[value_index]);
-      if (id_len != 64) {
-        log_debug("Nostr Event Error: id is not 64 bytes\n");
+      if (!is_valid_nostr_event_id(&funcs, json, &token[value_index])) {
         return false;
-      }
-
-      if (!is_lower_hex_str(&json[token[value_index].start], id_len)) {
-        log_debug("Nostr Event Error: id is not hex\n");
       }
 
       continue;
@@ -81,19 +71,7 @@ bool json_to_nostr_event(const char* json, PNostrEvent event)
     if (funcs.strncmp(json, &token[key_index], "pubkey", 6)) {
       log_debug("pubkey found\n");
 
-      if (!funcs.is_string(&token[value_index])) {
-        log_debug("Nostr Event Error: pubkey is not string\n");
-        return false;
-      }
-
-      size_t pubkey_len = funcs.get_token_length(&token[value_index]);
-      if (pubkey_len != 64) {
-        log_debug("Nostr Event Error: pubkey is not 64 bytes\n");
-        return false;
-      }
-
-      if (!is_lower_hex_str(&json[token[value_index].start], pubkey_len)) {
-        log_debug("Nostr Event Error: pubkey is not hex\n");
+      if (!is_valid_nostr_event_pubkey(&funcs, json, &token[value_index])) {
         return false;
       }
 
@@ -103,8 +81,7 @@ bool json_to_nostr_event(const char* json, PNostrEvent event)
     if (funcs.strncmp(json, &token[key_index], "kind", 4)) {
       log_debug("kind found\n");
 
-      if (!funcs.is_primitive(&token[value_index])) {
-        log_debug("Nostr Event Error: kind is not number\n");
+      if (!is_valid_nostr_event_kind(&funcs, json, &token[value_index])) {
         return false;
       }
 
@@ -114,8 +91,7 @@ bool json_to_nostr_event(const char* json, PNostrEvent event)
     if (funcs.strncmp(json, &token[key_index], "created_at", 10)) {
       log_debug("created_at found\n");
 
-      if (!funcs.is_primitive(&token[value_index])) {
-        log_debug("Nostr Event Error: created_at is not number\n");
+      if (!is_valid_nostr_event_created_at(&funcs, json, &token[value_index])) {
         return false;
       }
 
@@ -125,19 +101,7 @@ bool json_to_nostr_event(const char* json, PNostrEvent event)
     if (funcs.strncmp(json, &token[key_index], "sig", 3)) {
       log_debug("sig found\n");
 
-      if (!funcs.is_string(&token[value_index])) {
-        log_debug("Nostr Event Error: sig is not string\n");
-        return false;
-      }
-
-      size_t sig_len = funcs.get_token_length(&token[value_index]);
-      if (sig_len != 128) {
-        log_debug("Nostr Event Error: pubkey is not 128 bytes\n");
-        return false;
-      }
-
-      if (!is_lower_hex_str(&json[token[value_index].start], sig_len)) {
-        log_debug("Nostr Event Error: sig is not hex\n");
+      if (!is_valid_nostr_event_sig(&funcs, json, &token[value_index])) {
         return false;
       }
 
@@ -147,8 +111,7 @@ bool json_to_nostr_event(const char* json, PNostrEvent event)
     if (funcs.strncmp(json, &token[key_index], "tags", 4)) {
       log_debug("tags found\n");
 
-      if (!funcs.is_array(&token[value_index])) {
-        log_debug("JSON error: tags is not array\n");
+      if (!is_valid_nostr_event_tags(&funcs, json, &token[value_index])) {
         return false;
       }
 
