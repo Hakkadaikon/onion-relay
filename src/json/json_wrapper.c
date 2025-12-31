@@ -63,13 +63,19 @@ static bool json_wrapper_strncmp(
   return true;
 }
 
+static size_t json_wrapper_get_token_length(const jsontok_t* token)
+{
+  return (token->end - token->start);
+}
+
 void json_funcs_init(PJsonFuncs funcs)
 {
-  funcs->init         = json_wrapper_init;
-  funcs->parse        = json_wrapper_parse;
-  funcs->strncmp      = json_wrapper_strncmp;
-  funcs->is_array     = json_wrapper_is_array;
-  funcs->is_object    = json_wrapper_is_object;
-  funcs->is_string    = json_wrapper_is_string;
-  funcs->is_primitive = json_wrapper_is_primitive;
+  funcs->init             = json_wrapper_init;
+  funcs->parse            = json_wrapper_parse;
+  funcs->strncmp          = json_wrapper_strncmp;
+  funcs->is_array         = json_wrapper_is_array;
+  funcs->is_object        = json_wrapper_is_object;
+  funcs->is_string        = json_wrapper_is_string;
+  funcs->is_primitive     = json_wrapper_is_primitive;
+  funcs->get_token_length = json_wrapper_get_token_length;
 }

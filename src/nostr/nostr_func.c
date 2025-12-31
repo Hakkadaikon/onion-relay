@@ -65,6 +65,12 @@ bool json_to_nostr_event(const char* json, PNostrEvent event)
         return false;
       }
 
+      size_t id_len = funcs.get_token_length(&token[value_index]);
+      if (id_len != 64) {
+        log_debug("Nostr Event Error: id is not 64 bytes\n");
+        return false;
+      }
+
       continue;
     }
 

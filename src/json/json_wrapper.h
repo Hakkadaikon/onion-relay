@@ -38,6 +38,9 @@ typedef bool (*PJsonTokenIsStringCallback)(
 typedef bool (*PJsonTokenIsPrimitiveCallback)(
   const jsontok_t* token);
 
+typedef size_t (*PGetJsonTokenLengthCallback)(
+  const jsontok_t* token);
+
 typedef struct {
   PJsonInitCallback             init;
   PJsonStrCmpCallback           strncmp;
@@ -46,6 +49,7 @@ typedef struct {
   PJsonTokenIsArrayCallback     is_array;
   PJsonTokenIsStringCallback    is_string;
   PJsonTokenIsPrimitiveCallback is_primitive;
+  PGetJsonTokenLengthCallback   get_token_length;
 } JsonFuncs, *PJsonFuncs;
 
 void json_funcs_init(PJsonFuncs funcs);

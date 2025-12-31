@@ -3,7 +3,7 @@
 
 #include "../util/types.h"
 
-#define NOSTR_KEY_LENGTH 33
+#define NOSTR_KEY_LENGTH 64
 #define NOSTR_TAG_LENGTH 2048
 #define NOSTR_TAG_KEY_LENGTH 32
 #define NOSTR_TAG_VALUE_COUNT 16
