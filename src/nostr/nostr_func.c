@@ -71,6 +71,10 @@ bool json_to_nostr_event(const char* json, PNostrEvent event)
         return false;
       }
 
+      if (!is_lower_hex_str(&json[token[value_index].start], id_len)) {
+        log_debug("Nostr Event Error: id is not hex\n");
+      }
+
       continue;
     }
 
@@ -85,6 +89,11 @@ bool json_to_nostr_event(const char* json, PNostrEvent event)
       size_t pubkey_len = funcs.get_token_length(&token[value_index]);
       if (pubkey_len != 64) {
         log_debug("Nostr Event Error: pubkey is not 64 bytes\n");
+        return false;
+      }
+
+      if (!is_lower_hex_str(&json[token[value_index].start], pubkey_len)) {
+        log_debug("Nostr Event Error: pubkey is not hex\n");
         return false;
       }
 
@@ -124,6 +133,11 @@ bool json_to_nostr_event(const char* json, PNostrEvent event)
       size_t sig_len = funcs.get_token_length(&token[value_index]);
       if (sig_len != 128) {
         log_debug("Nostr Event Error: pubkey is not 128 bytes\n");
+        return false;
+      }
+
+      if (!is_lower_hex_str(&json[token[value_index].start], sig_len)) {
+        log_debug("Nostr Event Error: sig is not hex\n");
         return false;
       }
 

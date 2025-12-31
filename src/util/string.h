@@ -36,19 +36,35 @@ static inline bool is_space(const char c)
           (c == '\f'));
 }
 
-static inline bool is_lower(char c)
+static inline bool is_lower(const char c)
 {
   return ((c >= 'a') && (c <= 'z'));
 }
 
-static inline bool is_upper(char c)
+static inline bool is_upper(const char c)
 {
   return ((c >= 'A') && (c <= 'Z'));
 }
 
-static inline bool is_digit(char c)
+static inline bool is_digit(const char c)
 {
   return ((c >= '0') && (c <= '9'));
+}
+
+static inline bool is_lower_hex(const char c)
+{
+  return is_digit(c) || ((c >= 'a') && (c <= 'f'));
+}
+
+static inline bool is_lower_hex_str(const char* c, const size_t len)
+{
+  for (int i = 0; i < len; i++) {
+    if (!is_lower_hex(c[i])) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 static inline bool is_utf8_space(const char* str)
