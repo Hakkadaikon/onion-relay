@@ -121,6 +121,12 @@ bool json_to_nostr_event(const char* json, PNostrEvent event)
         return false;
       }
 
+      size_t sig_len = funcs.get_token_length(&token[value_index]);
+      if (sig_len != 128) {
+        log_debug("Nostr Event Error: pubkey is not 128 bytes\n");
+        return false;
+      }
+
       continue;
     }
 
