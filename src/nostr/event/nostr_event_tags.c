@@ -6,7 +6,7 @@ bool extract_nostr_event_tags(
   const PJsonFuncs funcs,
   const char*      json,
   const jsontok_t* token,
-  NostrTag*        tags)
+  NostrTagEntity*  tags)
 {
   if (!funcs->is_array(token)) {
     log_debug("JSON error: tags is not array\n");

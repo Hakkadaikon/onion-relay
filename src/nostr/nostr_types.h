@@ -17,21 +17,21 @@ typedef struct {
   char   key[64];
   char   values[NOSTR_EVENT_TAG_VALUE_COUNT][NOSTR_EVENT_TAG_VALUE_LENGTH];
   size_t item_count;
-} NostrTag, *PNostrTag;
+} NostrTagEntity, *PNostrTagEntity;
 
 typedef struct {
-  char     id[65];
-  char     dummy1[7];
-  char     pubkey[65];
-  char     dummy2[7];
-  uint32_t kind;
-  uint32_t tag_count;
-  time_t   created_at;
-  NostrTag tags[NOSTR_EVENT_TAG_LENGTH];
-  char     content[NOSTR_EVENT_CONTENT_LENGTH];
-  char     sig[129];
-  char     dummy3[7];
-} NostrEvent, *PNostrEvent;
+  char           id[65];
+  char           dummy1[7];
+  char           pubkey[65];
+  char           dummy2[7];
+  uint32_t       kind;
+  uint32_t       tag_count;
+  time_t         created_at;
+  NostrTagEntity tags[NOSTR_EVENT_TAG_LENGTH];
+  char           content[NOSTR_EVENT_CONTENT_LENGTH];
+  char           sig[129];
+  char           dummy3[7];
+} NostrEventEntity, *PNostrEventEntity;
 
 typedef struct {
   uint32_t ids[NOSTR_REQ_IDS_LENGTH];
@@ -41,6 +41,6 @@ typedef struct {
   time_t   since;
   time_t   until;
   size_t   limit;
-} NostrRequest, *PNostrRequest;
+} NostrReqEntity, *PNostrReqEntity;
 
 #endif

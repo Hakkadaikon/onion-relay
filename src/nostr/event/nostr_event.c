@@ -7,14 +7,14 @@ extern bool extract_nostr_event_pubkey(const PJsonFuncs funcs, const char* json,
 extern bool extract_nostr_event_kind(const PJsonFuncs funcs, const char* json, const jsontok_t* token, uint32_t* kind);
 extern bool extract_nostr_event_created_at(const PJsonFuncs funcs, const char* json, const jsontok_t* token, time_t* created_at);
 extern bool extract_nostr_event_sig(const PJsonFuncs funcs, const char* json, const jsontok_t* token, char* sig);
-extern bool extract_nostr_event_tags(const PJsonFuncs funcs, const char* json, const jsontok_t* token, NostrTag* tags);
+extern bool extract_nostr_event_tags(const PJsonFuncs funcs, const char* json, const jsontok_t* token, NostrTagEntity* tags);
 
 bool extract_nostr_event(
-  const PJsonFuncs funcs,
-  const char*      json,
-  const jsontok_t* token,
-  const size_t     token_count,
-  NostrEvent*      event)
+  const PJsonFuncs  funcs,
+  const char*       json,
+  const jsontok_t*  token,
+  const size_t      token_count,
+  NostrEventEntity* event)
 {
   struct {
     bool id;

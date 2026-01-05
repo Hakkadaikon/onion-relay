@@ -45,7 +45,7 @@ bool nostr_event_handler(const char* json, PNostrFuncs nostr_funcs)
       return false;
     }
 
-    NostrEvent event;
+    NostrEventEntity event;
 
     if (!extract_nostr_event(
           &json_funcs,
