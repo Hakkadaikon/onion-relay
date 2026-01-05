@@ -46,6 +46,11 @@ typedef unsigned long long uint64_t;
 typedef uint64_t size_t;
 #endif
 
+#ifndef _TIME_T
+#define _TIME_T
+typedef uint64_t time_t;
+#endif
+
 #ifndef _SSIZE_T
 #define _SSIZE_T
 typedef int64_t ssize_t;

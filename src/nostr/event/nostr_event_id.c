@@ -2,7 +2,11 @@
 #include "../../util/string.h"
 #include "../nostr_func.h"
 
-bool is_valid_nostr_event_id(const PJsonFuncs funcs, const char* json, const jsontok_t* token)
+bool extract_nostr_event_id(
+  const PJsonFuncs funcs,
+  const char*      json,
+  const jsontok_t* token,
+  char*            id)
 {
   if (!funcs->is_string(token)) {
     log_debug("Nostr Event Error: id is not string\n");
@@ -19,5 +23,6 @@ bool is_valid_nostr_event_id(const PJsonFuncs funcs, const char* json, const jso
     log_debug("Nostr Event Error: id is not hex\n");
   }
 
+  // TODO extract id
   return true;
 }

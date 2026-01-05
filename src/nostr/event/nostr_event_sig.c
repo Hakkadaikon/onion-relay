@@ -2,7 +2,11 @@
 #include "../../util/string.h"
 #include "../nostr_func.h"
 
-bool is_valid_nostr_event_sig(const PJsonFuncs funcs, const char* json, const jsontok_t* token)
+bool extract_nostr_event_sig(
+  const PJsonFuncs funcs,
+  const char*      json,
+  const jsontok_t* token,
+  char*            sig)
 {
   if (!funcs->is_string(token)) {
     log_debug("Nostr Event Error: sig is not string\n");
@@ -20,5 +24,6 @@ bool is_valid_nostr_event_sig(const PJsonFuncs funcs, const char* json, const js
     return false;
   }
 
+  // TODO extract sig
   return true;
 }

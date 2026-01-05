@@ -2,7 +2,11 @@
 #include "../../util/string.h"
 #include "../nostr_func.h"
 
-bool is_valid_nostr_event_pubkey(const PJsonFuncs funcs, const char* json, const jsontok_t* token)
+bool extract_nostr_event_pubkey(
+  const PJsonFuncs funcs,
+  const char*      json,
+  const jsontok_t* token,
+  char*            pubkey)
 {
   if (!funcs->is_string(token)) {
     log_debug("Nostr Event Error: pubkey is not string\n");
@@ -20,5 +24,6 @@ bool is_valid_nostr_event_pubkey(const PJsonFuncs funcs, const char* json, const
     return false;
   }
 
+  // TODO extract pubkey
   return true;
 }

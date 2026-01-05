@@ -3,27 +3,44 @@
 
 #include "../util/types.h"
 
-#define NOSTR_KEY_LENGTH 64
-#define NOSTR_TAG_LENGTH 2048
-#define NOSTR_TAG_KEY_LENGTH 32
-#define NOSTR_TAG_VALUE_COUNT 16
-#define NOSTR_TAG_VALUE_LENGTH 512
-#define NOSTR_CONTENT_LENGTH (1 * 1024 * 1024)
+#define NOSTR_EVENT_TAG_LENGTH (2 * 1024)
+#define NOSTR_EVENT_TAG_VALUE_COUNT 16
+#define NOSTR_EVENT_TAG_VALUE_LENGTH 512
+#define NOSTR_EVENT_CONTENT_LENGTH (1 * 1024 * 1024)
+
+#define NOSTR_REQ_IDS_LENGTH 512
+#define NOSTR_REQ_AUTHORS_LENGTH NOSTR_EVENT_TAG_LENGTH
+#define NOSTR_REQ_KINDS_LENGTH 512
+#define NOSTR_REQ_TAGS_LENGTH 512
 
 typedef struct {
-  char   key[NOSTR_TAG_KEY_LENGTH];
-  char   values[NOSTR_TAG_VALUE_COUNT][NOSTR_TAG_VALUE_LENGTH];
+  char   key[64];
+  char   values[NOSTR_EVENT_TAG_VALUE_COUNT][NOSTR_EVENT_TAG_VALUE_LENGTH];
   size_t item_count;
 } NostrTag, *PNostrTag;
 
 typedef struct {
-  char     id[NOSTR_KEY_LENGTH];
-  char     pubkey[NOSTR_KEY_LENGTH];
+  char     id[65];
+  char     dummy1[7];
+  char     pubkey[65];
+  char     dummy2[7];
   uint32_t kind;
   uint32_t tag_count;
-  uint64_t created_at;
-  NostrTag tags[NOSTR_TAG_LENGTH];
-  char     content[NOSTR_CONTENT_LENGTH];
+  time_t   created_at;
+  NostrTag tags[NOSTR_EVENT_TAG_LENGTH];
+  char     content[NOSTR_EVENT_CONTENT_LENGTH];
+  char     sig[129];
+  char     dummy3[7];
 } NostrEvent, *PNostrEvent;
+
+typedef struct {
+  uint32_t ids[NOSTR_REQ_IDS_LENGTH];
+  uint32_t authors[NOSTR_REQ_AUTHORS_LENGTH];
+  uint32_t kinds[NOSTR_REQ_KINDS_LENGTH];
+  int32_t  tags[NOSTR_REQ_TAGS_LENGTH];
+  time_t   since;
+  time_t   until;
+  size_t   limit;
+} NostrRequest, *PNostrRequest;
 
 #endif
