@@ -16,8 +16,11 @@ static inline void hex_dump_char(char c)
   internal_write(STDOUT_FILENO, buf, 3);
 }
 
-void hex_dump_local(const void* restrict data, size_t size)
+bool hex_dump_local(const void* restrict data, size_t size)
 {
+  require_not_null(data, false);
+  require_valid_length(size, false);
+
   const char* byte_data = (const char*)data;
 
   for (size_t i = 0; i < size; i++) {
@@ -31,18 +34,18 @@ void hex_dump_local(const void* restrict data, size_t size)
   if (size % 16 != 0) {
     internal_write(STDOUT_FILENO, "\n", 1);
   }
+
+  return true;
 }
 
-void log_dump_local(const int32_t fd, const char* restrict str, const char* file, int line)
+bool log_dump_local(const int32_t fd, const char* restrict str, const char* file, int line)
 {
-  if (is_null(str) || fd <= 0) {
-    return;
-  }
-
+  require_valid_length(fd, false);
+  require_not_null(str, false);
+  require_not_null(file, false);
+  require_valid_length(line, false);
   size_t len = strlen(str);
-  if (len == 0) {
-    return;
-  }
+  require_valid_length(len, false);
 
 #ifdef LOG_LEVE_DEBUG
   char   linestr[8];
@@ -58,16 +61,12 @@ void log_dump_local(const int32_t fd, const char* restrict str, const char* file
   (void)internal_write(fd, str, len);
 }
 
-void var_dump_local(const int32_t fd, const char* restrict str, const int32_t value)
+bool var_dump_local(const int32_t fd, const char* restrict str, const int32_t value)
 {
-  if (is_null(str) || fd <= 0) {
-    return;
-  }
-
+  require_valid_length(fd, false);
+  require_not_null(str, false);
   size_t len = strlen(str);
-  if (len == 0) {
-    return;
-  }
+  require_valid_length(len, false);
 
   (void)internal_write(fd, str, len);
 
@@ -76,16 +75,18 @@ void var_dump_local(const int32_t fd, const char* restrict str, const int32_t va
   buffer[buffer_size]     = '\n';
   buffer[buffer_size + 1] = '\0';
 
-  (void)internal_write(fd, buffer, buffer_size + 1);
+  return (internal_write(fd, buffer, buffer_size + 1) > 0);
 }
 
-void str_dump_local(const int32_t fd, const char* restrict str, const char* restrict value)
+bool str_dump_local(const int32_t fd, const char* restrict str, const char* restrict value)
 {
-  if (is_null(str) || is_null(value) || fd <= 0) {
-    return;
-  }
+  require_valid_length(fd, false);
+  require_not_null(str, false);
+  require_not_null(value, false);
 
   log_dump(fd, str);
   log_dump(fd, value);
   log_dump(fd, "\n");
+
+  return true;
 }

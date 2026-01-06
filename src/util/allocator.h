@@ -3,6 +3,7 @@
 
 #include "../arch/linux/errno.h"
 #include "./types.h"
+#include "string.h"
 // extern void* alloca(size_t __size);
 #undef alloca
 #undef __alloca

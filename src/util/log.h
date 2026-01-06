@@ -3,9 +3,9 @@
 
 #include "types.h"
 
-void log_dump_local(const int32_t fd, const char* str, const char* file, int line);
-void var_dump_local(const int32_t fd, const char* str, const int32_t value);
-void str_dump_local(const int32_t fd, const char* str, const char* value);
+bool log_dump_local(const int32_t fd, const char* str, const char* file, int line);
+bool var_dump_local(const int32_t fd, const char* str, const int32_t value);
+bool str_dump_local(const int32_t fd, const char* str, const char* value);
 
 #if !defined(LOG_LEVEL_DEBUG) && !defined(LOG_LEVEL_INFO) && !defined(LOG_LEVEL_ERROR)
 #define LOG_LEVEL_ERROR
