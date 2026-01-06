@@ -53,9 +53,11 @@ bool nostr_event_handler(const char* json, PNostrFuncs nostr_funcs)
           &token[3],
           token_count - 3,
           &event)) {
+      log_debug("Nostr Event Error: Invalid Nostr JSON format\n");
       return false;
     }
 
+    log_debug("Nostr funcs\n");
     return nostr_funcs->event(&event);
   }
 

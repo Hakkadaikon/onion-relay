@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-void log_dump_local(const int32_t fd, const char* str);
+void log_dump_local(const int32_t fd, const char* str, const char* file, int line);
 void var_dump_local(const int32_t fd, const char* str, const int32_t value);
 void str_dump_local(const int32_t fd, const char* str, const char* value);
 
@@ -13,7 +13,7 @@ void str_dump_local(const int32_t fd, const char* str, const char* value);
 
 #ifdef LOG_LEVEL_DEBUG
 #define hex_dump(data, size) hex_dump_local(data, size)
-#define log_dump(fd, str) log_dump_local(fd, str)
+#define log_dump(fd, str) log_dump_local(fd, str, __FILE__, __LINE__)
 #define log_debug(str) log_dump(STDOUT_FILENO, str)
 #define log_info(str) log_dump(STDOUT_FILENO, str)
 #define log_error(str) log_dump(STDERR_FILENO, str)
@@ -27,7 +27,7 @@ void str_dump_local(const int32_t fd, const char* str, const char* value);
 
 #elif defined(LOG_LEVEL_INFO)
 #define hex_dump(data, size) hex_dump_local(data, size)
-#define log_dump(fd, str) log_dump_local(fd, str)
+#define log_dump(fd, str) log_dump_local(fd, str, __FILE__, __LINE__)
 #define log_debug(str)
 #define log_info(str) log_dump(STDOUT_FILENO, str)
 #define log_error(str) log_dump(STDERR_FILENO, str)
@@ -41,7 +41,7 @@ void str_dump_local(const int32_t fd, const char* str, const char* value);
 
 #elif defined(LOG_LEVEL_ERROR)
 #define hex_dump(data, size) hex_dump_local(data, size)
-#define log_dump(fd, str) log_dump_local(fd, str)
+#define log_dump(fd, str) log_dump_local(fd, str, __FILE__, __LINE__)
 #define log_debug(str)
 #define log_info(str)
 #define log_error(str) log_dump(STDERR_FILENO, str)

@@ -33,7 +33,7 @@ void hex_dump_local(const void* restrict data, size_t size)
   }
 }
 
-void log_dump_local(const int32_t fd, const char* restrict str)
+void log_dump_local(const int32_t fd, const char* restrict str, const char* file, int line)
 {
   if (is_null(str) || fd <= 0) {
     return;
@@ -44,6 +44,17 @@ void log_dump_local(const int32_t fd, const char* restrict str)
     return;
   }
 
+#ifdef LOG_LEVE_DEBUG
+  char   linestr[8];
+  size_t linestr_size   = itoa(line, linestr, sizeof(linestr));
+  linestr[linestr_size] = '\0';
+
+  (void)internal_write(fd, "[", 1);
+  (void)internal_write(fd, file, strlen(file));
+  (void)internal_write(fd, ":", 1);
+  (void)internal_write(fd, linestr, strlen(linestr));
+  (void)internal_write(fd, "] ", 2);
+#endif
   (void)internal_write(fd, str, len);
 }
 

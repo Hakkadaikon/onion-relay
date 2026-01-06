@@ -5,6 +5,18 @@
 
 #define value(ptr) (*ptr)
 #define is_null(str) (str == NULL)
+#define require_not_null(ptr, ret_val) \
+  if (is_null(ptr)) {                  \
+    return ret_val;                    \
+  }
+#define require_not_null_or_empty(ptr, ret_val) \
+  if (is_null_or_empty(ptr)) {                  \
+    return ret_val;                             \
+  }
+#define require_valid_length(len, ret_val) \
+  if (len <= 0) {                          \
+    return ret_val;                        \
+  }
 
 static inline bool is_empty_value(const char c)
 {
@@ -58,6 +70,9 @@ static inline bool is_lower_hex(const char c)
 
 static inline bool is_lower_hex_str(const char* c, const size_t len)
 {
+  require_not_null(c, false);
+  require_valid_length(len, false);
+
   for (int i = 0; i < len; i++) {
     if (!is_lower_hex(c[i])) {
       return false;
@@ -69,6 +84,8 @@ static inline bool is_lower_hex_str(const char* c, const size_t len)
 
 static inline bool is_utf8_space(const char* str)
 {
+  require_not_null(str, false);
+
   // UTF-8: 0xE3 0x80 0x80
   return (str[0] == '\xE3') &&
          (str[1] == '\x80') &&
@@ -101,9 +118,9 @@ static inline bool strncmp(
   const char*  str2,
   const size_t capacity)
 {
-  if (capacity == 0) {
-    return false;
-  }
+  require_not_null(str1, false);
+  require_not_null(str2, false);
+  require_valid_length(capacity, false);
 
   for (size_t i = 0; i < capacity; i++) {
     if (!chrcmp(str1[i], str2[i])) {
@@ -121,6 +138,11 @@ static inline bool strncmp_sensitive(
   const size_t str2capacity,
   const bool   case_sensitive)
 {
+  require_not_null(str1, false);
+  require_not_null(str2, false);
+  require_valid_length(str1capacity, false);
+  require_valid_length(str2capacity, false);
+
   size_t capacity = (str1capacity > str2capacity) ? str2capacity : str1capacity;
   if (capacity == 0) {
     return false;
@@ -145,11 +167,12 @@ static inline int32_t strpos_sensitive(
   const size_t target_len,
   const bool   case_sensitive)
 {
-  if (is_null_or_empty(base) || base_len <= 0 || target_len > base_len) {
-    return -1;
-  }
+  require_not_null(base, -1);
+  require_not_null(target, -1);
+  require_valid_length(base_len, -1);
+  require_valid_length(target_len, -1);
 
-  if (is_null_or_empty(target) || target_len <= 0) {
+  if (target_len > base_len) {
     return -1;
   }
 
@@ -174,9 +197,8 @@ static inline bool strstr_sensitive(
 
 static inline int32_t skip_space(const char* buffer, const size_t buffer_size)
 {
-  if (is_null(buffer) || buffer_size <= 0) {
-    return -1;
-  }
+  require_not_null(buffer, -1);
+  require_valid_length(buffer_size, -1);
 
   size_t pos = 0;
   while (!is_empty(&buffer[pos]) && pos < buffer_size) {
@@ -224,9 +246,8 @@ static inline int32_t skip_word(const char* buffer, const size_t buffer_size)
 
 static inline int32_t skip_next_line(const char* buffer, const size_t buffer_len)
 {
-  if (is_null(buffer) || buffer_len < 2) {
-    return 0;
-  }
+  require_not_null(buffer, 0);
+  require_valid_length(buffer_len - 2, 0);
 
   size_t buffer_pos = 0;
   while (buffer[buffer_pos] != '\0' && buffer_pos < buffer_len - 1) {
@@ -249,6 +270,9 @@ static inline int32_t skip_next_line(const char* buffer, const size_t buffer_len
 
 static inline int32_t skip_token(const char* buffer, const size_t buffer_size, const char token)
 {
+  require_not_null(buffer, -1);
+  require_valid_length(buffer_size, -1);
+
   for (size_t i = 0; i < buffer_size; i++) {
     if (buffer[i] == token) {
       return i;
@@ -260,6 +284,8 @@ static inline int32_t skip_token(const char* buffer, const size_t buffer_size, c
 
 static size_t inline strlen(const char* str)
 {
+  require_not_null(str, 0);
+
   int32_t len = 0;
   while (str[len++] != '\0')
     ;
@@ -269,6 +295,9 @@ static size_t inline strlen(const char* str)
 
 static size_t inline strnlen(const char* str, const size_t capacity)
 {
+  require_not_null(str, 0);
+  require_valid_length(capacity, 0);
+
   int32_t len = 0;
   while (str[len++] != '\0' && len < capacity)
     ;
@@ -294,6 +323,9 @@ static inline int32_t calc_digit(int32_t value)
 
 static inline size_t itoa(int32_t value, char* buffer, size_t buffer_capacity)
 {
+  require_not_null(buffer, 0);
+  require_valid_length(buffer_capacity, 0);
+
   int32_t digit       = calc_digit(value);
   char*   end         = buffer + digit;
   char*   current     = end;

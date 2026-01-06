@@ -1,28 +1,26 @@
 #ifndef NOSTR_LINUX_X86_64_ASM_H_
 #define NOSTR_LINUX_X86_64_ASM_H_
 
+#include "../../../util/log.h"
 #include "../../../util/types.h"
 
-extern void var_dump_local(const int32_t fd, const char* str, const int32_t value);
-extern void log_dump_local(const int32_t fd, const char* str);
-
-#define SYSCALL_EARLY_RETURN(ret)    \
-  {                                  \
-    if (ret < 0) {                   \
-      if (ret != -EAGAIN) {          \
-        log_dump_local(1, __func__); \
-        var_dump_local(1, ":", ret); \
-      }                              \
-      errno = -ret;                  \
-      return -1;                     \
-    }                                \
+#define SYSCALL_EARLY_RETURN(ret) \
+  {                               \
+    if (ret < 0) {                \
+      if (ret != -EAGAIN) {       \
+        log_dump(1, __func__);    \
+        var_dump(1, ":", ret);    \
+      }                           \
+      errno = -ret;               \
+      return -1;                  \
+    }                             \
   }
 #define SYSCALL_SIZE_EARLY_RETURN(ret) \
   {                                    \
     if (ret < 0) {                     \
       if (ret != -EAGAIN) {            \
-        log_dump_local(1, __func__);   \
-        var_dump_local(1, ":", ret);   \
+        log_dump(1, __func__);         \
+        var_dump(1, ":", ret);         \
       }                                \
       errno = -ret;                    \
       return -1;                       \
