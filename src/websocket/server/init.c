@@ -2,6 +2,8 @@
 
 int32_t websocket_server_init(const PWebSocketInitArgs args)
 {
+  require_not_null(args, WEBSOCKET_ERRORCODE_FATAL_ERROR);
+
   log_info("websocket server init processing...\n");
   var_info("port    : ", args->port_num);
   var_info("backlog : ", args->backlog);

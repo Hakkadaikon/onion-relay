@@ -11,6 +11,13 @@ static inline bool accept_handle(
   PWebSocketEpollEvent event,
   PWebSocketCallbacks  callbacks)
 {
+  require_valid_length(epoll_fd, false);
+  require_valid_length(server_sock, false);
+  require_not_null(buffer, false);
+  require_not_null(buffer->request, false);
+  require_not_null(buffer->response, false);
+  require_valid_length(buffer->capacity, false);
+
   HTTPRequest request;
   ssize_t     bytes_read;
 

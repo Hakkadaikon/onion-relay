@@ -10,6 +10,13 @@ static inline int32_t opcode_handle(
   PWebSocketCallbacks callbacks,
   PWebSocketEntity    entity)
 {
+  require_valid_length(client_sock, WEBSOCKET_ERRORCODE_FATAL_ERROR);
+  require_not_null(buffer, WEBSOCKET_ERRORCODE_FATAL_ERROR);
+  require_valid_length(buffer->capacity, WEBSOCKET_ERRORCODE_FATAL_ERROR);
+  require_not_null(buffer->request, WEBSOCKET_ERRORCODE_FATAL_ERROR);
+  require_not_null(buffer->response, WEBSOCKET_ERRORCODE_FATAL_ERROR);
+  require_not_null(entity, WEBSOCKET_ERRORCODE_FATAL_ERROR);
+
   switch (entity->opcode) {
     case WEBSOCKET_OP_CODE_TEXT:
     case WEBSOCKET_OP_CODE_BINARY:

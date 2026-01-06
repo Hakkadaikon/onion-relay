@@ -10,6 +10,13 @@ static inline int32_t epoll_receive(
   PWebSocketRawBuffer           buffer,
   PWebSocketCallbacks           callbacks)
 {
+  require_not_null(epoll_args, WEBSOCKET_ERRORCODE_FATAL_ERROR);
+  require_valid_length(epoll_args->epoll_fd, WEBSOCKET_ERRORCODE_FATAL_ERROR);
+  require_not_null(buffer, WEBSOCKET_ERRORCODE_FATAL_ERROR);
+  require_valid_length(buffer->capacity, WEBSOCKET_ERRORCODE_FATAL_ERROR);
+  require_not_null(buffer->request, WEBSOCKET_ERRORCODE_FATAL_ERROR);
+  require_not_null(buffer->response, WEBSOCKET_ERRORCODE_FATAL_ERROR);
+
   int32_t code = websocket_epoll_rise_error(epoll_args->event);
   if (code != WEBSOCKET_ERRORCODE_NONE) {
     return code;

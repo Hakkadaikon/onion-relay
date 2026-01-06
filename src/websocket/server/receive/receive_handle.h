@@ -11,6 +11,13 @@ static inline int32_t receive_handle(
   PWebSocketRawBuffer buffer,
   PWebSocketCallbacks callbacks)
 {
+  require_valid_length(client_sock, WEBSOCKET_ERRORCODE_FATAL_ERROR);
+  require_valid_length(read_size, WEBSOCKET_ERRORCODE_FATAL_ERROR);
+  require_not_null(buffer, WEBSOCKET_ERRORCODE_FATAL_ERROR);
+  require_valid_length(buffer->capacity, WEBSOCKET_ERRORCODE_FATAL_ERROR);
+  require_not_null(buffer->request, WEBSOCKET_ERRORCODE_FATAL_ERROR);
+  require_not_null(buffer->response, WEBSOCKET_ERRORCODE_FATAL_ERROR);
+
   WebSocketEntity entity;
   websocket_memset(&entity, 0x00, sizeof(entity));
 

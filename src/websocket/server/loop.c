@@ -5,10 +5,12 @@
 
 bool websocket_server_loop(PWebSocketLoopArgs args)
 {
+  require_not_null(args, false);
+  require_valid_length(args->server_sock, false);
+  require_valid_length(args->buffer_capacity, false);
+
   int32_t epoll_fd = websocket_epoll_create();
-  if (epoll_fd < 0) {
-    return false;
-  }
+  require_valid_length(epoll_fd, false);
 
   const size_t        MAX_EVENTS = 16384;
   WebSocketEpollEvent register_event;
