@@ -23,7 +23,7 @@ typedef int32_t (*PJsonParseCallback)(
   jsontok_t*     tokens,
   const uint32_t num_tokens);
 
-typedef void (*PJsonInitCallback)(
+typedef bool (*PJsonInitCallback)(
   PJsonParser parser);
 
 typedef bool (*PJsonTokenIsArrayCallback)(
@@ -52,6 +52,6 @@ typedef struct {
   PGetJsonTokenLengthCallback   get_token_length;
 } JsonFuncs, *PJsonFuncs;
 
-void json_funcs_init(PJsonFuncs funcs);
+bool json_funcs_init(PJsonFuncs funcs);
 
 #endif
