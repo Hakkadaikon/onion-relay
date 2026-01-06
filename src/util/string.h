@@ -17,6 +17,10 @@
   if (len <= 0) {                          \
     return ret_val;                        \
   }
+#define require(conditions, ret_val) \
+  if (!(conditions)) {               \
+    return ret_val;                  \
+  }
 
 static inline bool is_empty_value(const char c)
 {

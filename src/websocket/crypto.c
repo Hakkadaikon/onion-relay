@@ -5,10 +5,9 @@
 
 bool generate_websocket_acceptkey(const char* client_key, const size_t accept_key_size, char* accept_key)
 {
-  if (is_null(client_key) || is_null(accept_key) || accept_key_size < 128) {
-    log_error("Invalid WebSocket handshake request. Failed generate accept key\n");
-    return false;
-  }
+  require_not_null(client_key, false);
+  require_not_null(accept_key, false);
+  require_valid_length(accept_key_size - 128, false);
 
   const char* websocket_accept_guid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
   char        concatenated[256];

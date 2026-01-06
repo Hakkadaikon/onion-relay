@@ -29,6 +29,7 @@ bool client_handshake(
 
   char accept_key[HTTP_HEADER_VALUE_CAPACITY];
   if (!generate_websocket_acceptkey(client_key, sizeof(accept_key), accept_key)) {
+    log_error("Invalid WebSocket handshake request. Failed generate accept key\n");
     has_error = true;
     goto FINALIZE;
   }

@@ -19,17 +19,10 @@
  */
 bool to_websocket_entity(const char* restrict raw, const size_t capacity, PWebSocketEntity restrict entity)
 {
-  if (capacity < 2) {
-    return false;
-  }
-
-  if (is_null(entity)) {
-    return false;
-  }
-
-  if (is_null(entity->payload)) {
-    return false;
-  }
+  require_not_null(raw, false);
+  require_not_null(entity, false);
+  require_not_null(entity->payload, false);
+  require(capacity >= 2, false);
 
   //  0                   1                   2                   3
   //  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -92,18 +85,12 @@ bool to_websocket_entity(const char* restrict raw, const size_t capacity, PWebSo
   // |                               |
   // +-------------------------------+
   if (entity->payload_len == 126) {
-    if (capacity < 4) {
-      return false;
-    }
+    require_valid_length(capacity - 4, false);
     entity->ext_payload_len = (raw[2] << 8) | raw[3];
-    if (entity->ext_payload_len > capacity) {
-      return false;
-    }
+    require(entity->ext_payload_len <= capacity, false);
     packet_offset += 2;
   } else if (entity->payload_len == 127) {
-    if (capacity < 10) {
-      return false;
-    }
+    require(capacity >= 10, false);
 
     for (int32_t i = 0; i < 8; i++) {
       entity->ext_payload_len = (entity->ext_payload_len << 8) | raw[2 + i];
@@ -126,17 +113,12 @@ bool to_websocket_entity(const char* restrict raw, const size_t capacity, PWebSo
   // | Masking-key (continued)       |
   // +--------------------------------
   if (entity->mask) {
-    if (capacity < packet_offset + 4) {
-      return false;
-    }
-
+    require(capacity >= packet_offset + 4, false);
     websocket_memcpy(entity->masking_key, &raw[packet_offset], 4);
     packet_offset += sizeof(entity->masking_key);
   }
 
-  if (entity->ext_payload_len > (capacity - packet_offset)) {
-    return false;
-  }
+  require(entity->ext_payload_len <= (capacity - packet_offset), false);
 
   const char* payload_raw = &raw[packet_offset];
   for (size_t i = 0; i < entity->ext_payload_len; i++) {

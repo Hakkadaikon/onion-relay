@@ -1,7 +1,9 @@
 #include "websocket_local.h"
 
-void websocket_packet_dump(PWebSocketEntity restrict entity)
+bool websocket_packet_dump(PWebSocketEntity restrict entity)
 {
+  require_not_null(entity, false);
+
   var_debug("fin             : ", entity->fin);
   var_debug("rsv1            : ", entity->rsv1);
   var_debug("rsv2            : ", entity->rsv2);
@@ -11,6 +13,8 @@ void websocket_packet_dump(PWebSocketEntity restrict entity)
   var_debug("payload_len     : ", entity->payload_len);
   var_debug("ext_payload_len : ", entity->ext_payload_len);
   str_debug("payload         : ", entity->payload);
+
+  return true;
 }
 
 void websocket_epoll_event_dump(const int32_t events)

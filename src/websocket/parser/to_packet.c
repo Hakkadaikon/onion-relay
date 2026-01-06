@@ -10,9 +10,9 @@
 
 size_t to_websocket_packet(PWebSocketEntity restrict entity, const size_t capacity, char* restrict raw)
 {
-  if (!entity || !raw || capacity < 2) {
-    return 0;
-  }
+  require_not_null(entity, 0);
+  require_not_null(raw, 0);
+  require(capacity >= 2, 0);
 
   size_t offset = 0;
 
@@ -58,9 +58,7 @@ size_t to_websocket_packet(PWebSocketEntity restrict entity, const size_t capaci
   } else if (entity->ext_payload_len > 0xFFFF) {
     raw[offset] = mask | 127;  // Mask set + payload length 127
     offset++;
-    if (capacity < offset + 8) {
-      return 0;
-    }
+    require(capacity >= offset + 8, 0);
     for (int32_t i = 7; i >= 0; i--) {
       raw[offset + i] = entity->ext_payload_len & 0xFF;
       entity->ext_payload_len >>= 8;
@@ -73,17 +71,13 @@ size_t to_websocket_packet(PWebSocketEntity restrict entity, const size_t capaci
 
   // Masking key (if mask is set)
   if (entity->mask) {
-    if (capacity < offset + 4) {
-      return 0;
-    }
+    require(capacity >= offset + 4, 0);
     websocket_memcpy(&raw[offset], entity->masking_key, 4);
     offset += 4;
   }
 
   // Payload data
-  if (capacity < offset + entity->ext_payload_len) {
-    return 0;
-  }
+  require(capacity >= offset + entity->ext_payload_len, 0);
 
   if (entity->mask) {
     // use loop unroll

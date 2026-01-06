@@ -78,7 +78,7 @@ int32_t websocket_epoll_rise_input(PWebSocketEpollEvent event);
 /* websocket/internal_log.c                                                   */
 /*----------------------------------------------------------------------------*/
 
-void websocket_packet_dump(PWebSocketEntity entity);
+bool websocket_packet_dump(PWebSocketEntity entity);
 void websocket_epoll_event_dump(const int32_t events);
 
 #endif
