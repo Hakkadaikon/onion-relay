@@ -14,6 +14,7 @@
 #include "sha1.h"
 
 #include "../util/allocator.h"
+#include "../util/string.h"
 #include "sha1_def.h"
 
 void sha1Transform(uint32_t state[5], const uint8_t buffer[64]);
@@ -21,8 +22,12 @@ void sha1Init(Sha1Ctx* context);
 void sha1Update(Sha1Ctx* context, const uint8_t* data, uint32_t len);
 void sha1Final(uint8_t digest[20], Sha1Ctx* context);
 
-void sha1(const char* input, const size_t input_len, uint8_t* output)
+bool sha1(const char* input, const size_t input_len, uint8_t* output)
 {
+  require_not_null(input, false);
+  require_not_null(output, false);
+  require_valid_length(input_len, false);
+
   Sha1Ctx  ctx;
   uint32_t ii;
 
@@ -32,6 +37,7 @@ void sha1(const char* input, const size_t input_len, uint8_t* output)
   }
 
   sha1Final(output, &ctx);
+  return true;
 }
 
 /**

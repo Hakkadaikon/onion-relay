@@ -5,6 +5,6 @@
 
 #define SHA1_DIGEST_LENGTH 20
 
-void sha1(const char* input, const size_t input_len, uint8_t* output);
+bool sha1(const char* input, const size_t input_len, uint8_t* output);
 
 #endif

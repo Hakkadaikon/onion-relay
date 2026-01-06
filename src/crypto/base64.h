@@ -24,9 +24,10 @@ static inline bool base64_encode(const uint8_t* input, const size_t input_length
 
   // minimum input length   : 1byte
   // minimum output capacity: 5byte(4byte + \0)
-  if (is_null(input) || is_null(output) || input_length <= 0 || output_capacity <= base64_output_block_size) {
-    return false;
-  }
+  require_not_null(input, false);
+  require_not_null(output, false);
+  require_valid_length(input_length, false);
+  require_valid_length(output_capacity - base64_output_block_size, false);
 
   for (
     input_offset = 0, output_offset = 0;
@@ -55,10 +56,9 @@ static inline bool base64_encode(const uint8_t* input, const size_t input_length
 
 static inline bool is_base64(const char* str)
 {
+  require_not_null(str, false);
   size_t len = strlen(str);
-  if (len < base64_output_block_size) {
-    return false;
-  }
+  require_valid_length(len - base64_output_block_size, false);
 
   size_t padding_count = 0;
   for (size_t i = 1; i <= 2; i++) {
