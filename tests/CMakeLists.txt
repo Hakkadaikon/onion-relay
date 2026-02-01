@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(websocket-test)
+project(websocket-test LANGUAGES C CXX ASM)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -30,7 +30,17 @@ add_executable(
 add_executable(
   db-test
   nostr/db/db_tags_test.cpp
+  nostr/db/db_file_test.cpp
+  nostr/db/db_mmap_test.cpp
+  nostr/db/db_init_test.cpp
+  nostr/db/db_event_test.cpp
   ../src/nostr/db/db_tags.c
+  ../src/nostr/db/db_file.c
+  ../src/nostr/db/db_mmap.c
+  ../src/nostr/db/db_init.c
+  ../src/nostr/db/db_event.c
+  ../src/util/log.c
+  ../src/arch/linux/x86_64/asm_syscall.S
 )
 
 target_include_directories(

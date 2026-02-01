@@ -13,9 +13,9 @@ struct NostrFilter;
 // Result set for query results
 // ============================================================================
 typedef struct {
-  nostr_db_offset_t* offsets;    // Array of event offsets
-  uint32_t           count;      // Number of results
-  uint32_t           capacity;   // Array capacity
+  nostr_db_offset_t* offsets;   // Array of event offsets
+  uint32_t           count;     // Number of results
+  uint32_t           capacity;  // Array capacity
 } NostrDBResultSet;
 
 // ============================================================================

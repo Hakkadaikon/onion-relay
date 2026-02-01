@@ -26,14 +26,14 @@ _Static_assert(sizeof(NostrDBEventsHeader) == 64, "NostrDBEventsHeader must be 6
 // Index file common header (64 bytes)
 // ============================================================================
 typedef struct {
-  char     magic[8];           // Index type identifier
-  uint32_t version;            // NOSTR_DB_VERSION (1)
-  uint32_t flags;              // Reserved for future use
-  uint64_t bucket_count;       // Number of hash buckets
-  uint64_t entry_count;        // Number of registered entries
-  uint64_t pool_next_offset;   // Next write position in entry pool
-  uint64_t pool_size;          // Entry pool size
-  uint8_t  reserved[16];       // Reserved for future extension
+  char     magic[8];          // Index type identifier
+  uint32_t version;           // NOSTR_DB_VERSION (1)
+  uint32_t flags;             // Reserved for future use
+  uint64_t bucket_count;      // Number of hash buckets
+  uint64_t entry_count;       // Number of registered entries
+  uint64_t pool_next_offset;  // Next write position in entry pool
+  uint64_t pool_size;         // Entry pool size
+  uint8_t  reserved[16];      // Reserved for future extension
 } NostrDBIndexHeader;
 
 // Static assertion for header size
@@ -43,10 +43,10 @@ _Static_assert(sizeof(NostrDBIndexHeader) == 64, "NostrDBIndexHeader must be 64 
 // Event header in events.dat (48 bytes)
 // ============================================================================
 typedef struct {
-  uint32_t total_length;       // Total size of this event record
-  uint32_t flags;              // bit0 = deleted
-  uint8_t  id[32];             // Event ID (raw bytes)
-  int64_t  created_at;         // Unix timestamp
+  uint32_t total_length;  // Total size of this event record
+  uint32_t flags;         // bit0 = deleted
+  uint8_t  id[32];        // Event ID (raw bytes)
+  int64_t  created_at;    // Unix timestamp
 } NostrDBEventHeader;
 
 // Static assertion for header size
@@ -56,10 +56,10 @@ _Static_assert(sizeof(NostrDBEventHeader) == 48, "NostrDBEventHeader must be 48 
 // Event body (variable length, follows NostrDBEventHeader)
 // ============================================================================
 typedef struct {
-  uint8_t  pubkey[32];         // Public key (raw bytes)
-  uint8_t  sig[64];            // Signature (raw bytes)
-  uint32_t kind;               // Event type
-  uint32_t content_length;     // Content length
+  uint8_t  pubkey[32];      // Public key (raw bytes)
+  uint8_t  sig[64];         // Signature (raw bytes)
+  uint32_t kind;            // Event type
+  uint32_t content_length;  // Content length
   // Followed by:
   // char content[content_length];  // Variable length content
   // uint32_t tags_length;          // Serialized tags length
@@ -136,10 +136,10 @@ struct NostrDB {
  * @return Number of bytes written, or -1 on error
  */
 int64_t nostr_db_serialize_tags(
-    const NostrTagEntity* tags,
-    uint32_t tag_count,
-    uint8_t* buffer,
-    size_t capacity);
+  const NostrTagEntity* tags,
+  uint32_t              tag_count,
+  uint8_t*              buffer,
+  size_t                capacity);
 
 /**
  * @brief Deserialize tags from binary format
@@ -150,9 +150,9 @@ int64_t nostr_db_serialize_tags(
  * @return Number of tags deserialized, or -1 on error
  */
 int32_t nostr_db_deserialize_tags(
-    const uint8_t* buffer,
-    size_t length,
-    NostrTagEntity* tags,
-    uint32_t max_tags);
+  const uint8_t*  buffer,
+  size_t          length,
+  NostrTagEntity* tags,
+  uint32_t        max_tags);
 
 #endif

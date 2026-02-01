@@ -1,6 +1,6 @@
-#include "../nostr_types.h"
 #include "../../arch/memory.h"
 #include "../../util/string.h"
+#include "../nostr_types.h"
 #include "db_internal.h"
 
 /**
@@ -13,10 +13,10 @@
  */
 
 int64_t nostr_db_serialize_tags(
-    const NostrTagEntity* tags,
-    uint32_t tag_count,
-    uint8_t* buffer,
-    size_t capacity)
+  const NostrTagEntity* tags,
+  uint32_t              tag_count,
+  uint8_t*              buffer,
+  size_t                capacity)
 {
   require_not_null(buffer, -1);
   require(capacity >= 2, -1);
@@ -29,8 +29,8 @@ int64_t nostr_db_serialize_tags(
   require(ptr + 2 <= end, -1);
 
   uint16_t tag_count_u16 = (uint16_t)tag_count;
-  ptr[0] = (uint8_t)(tag_count_u16 & 0xFF);
-  ptr[1] = (uint8_t)((tag_count_u16 >> 8) & 0xFF);
+  ptr[0]                 = (uint8_t)(tag_count_u16 & 0xFF);
+  ptr[1]                 = (uint8_t)((tag_count_u16 >> 8) & 0xFF);
   ptr += 2;
 
   for (uint32_t i = 0; i < tag_count; i++) {
@@ -82,10 +82,10 @@ int64_t nostr_db_serialize_tags(
 }
 
 int32_t nostr_db_deserialize_tags(
-    const uint8_t* buffer,
-    size_t length,
-    NostrTagEntity* tags,
-    uint32_t max_tags)
+  const uint8_t*  buffer,
+  size_t          length,
+  NostrTagEntity* tags,
+  uint32_t        max_tags)
 {
   require_not_null(buffer, -1);
   require_not_null(tags, -1);
@@ -109,7 +109,7 @@ int32_t nostr_db_deserialize_tags(
 
     // Read value_count and name_len
     uint8_t value_count = *ptr++;
-    uint8_t name_len = *ptr++;
+    uint8_t name_len    = *ptr++;
 
     if (ptr + name_len > end) {
       return (int32_t)i;
