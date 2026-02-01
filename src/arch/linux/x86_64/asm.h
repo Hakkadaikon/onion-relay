@@ -83,7 +83,7 @@
   __linux_x8664_asm_syscall0(     \
     (int64_t)syscall_num)
 
-extern int32_t __linux_x8664_asm_syscall6(
+extern int64_t __linux_x8664_asm_syscall6(
   int64_t syscall_num,
   int64_t arg1,
   int64_t arg2,
@@ -92,7 +92,7 @@ extern int32_t __linux_x8664_asm_syscall6(
   int64_t arg5,
   int64_t arg6);
 
-extern int32_t __linux_x8664_asm_syscall5(
+extern int64_t __linux_x8664_asm_syscall5(
   int64_t syscall_num,
   int64_t arg1,
   int64_t arg2,
@@ -100,29 +100,29 @@ extern int32_t __linux_x8664_asm_syscall5(
   int64_t arg4,
   int64_t arg5);
 
-extern int32_t __linux_x8664_asm_syscall4(
+extern int64_t __linux_x8664_asm_syscall4(
   int64_t syscall_num,
   int64_t arg1,
   int64_t arg2,
   int64_t arg3,
   int64_t arg4);
 
-extern int32_t __linux_x8664_asm_syscall3(
+extern int64_t __linux_x8664_asm_syscall3(
   int64_t syscall_num,
   int64_t arg1,
   int64_t arg2,
   int64_t arg3);
 
-extern int32_t __linux_x8664_asm_syscall2(
+extern int64_t __linux_x8664_asm_syscall2(
   int64_t syscall_num,
   int64_t arg1,
   int64_t arg2);
 
-extern int32_t __linux_x8664_asm_syscall1(
+extern int64_t __linux_x8664_asm_syscall1(
   int64_t syscall_num,
   int64_t arg1);
 
-extern int32_t __linux_x8664_asm_syscall0(
+extern int64_t __linux_x8664_asm_syscall0(
   int64_t syscall_num);
 
 #define __NR_read 0

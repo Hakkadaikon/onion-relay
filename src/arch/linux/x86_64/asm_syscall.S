@@ -22,14 +22,14 @@ __linux_x8664_asm_syscall6:
     // @param rcx: arg3
     // @param r8 : arg4
     // @param r9 : arg5
-    // @param rsp: arg6
+    // @param 8(%rsp): arg6 (7th argument is on stack after return address)
     movq    %rdi, %rax
     movq    %rsi, %rdi
     movq    %rdx, %rsi
     movq    %rcx, %rdx
     movq    %r8,  %r10
     movq    %r9,  %r8
-    movq    16(%rsp), %r9
+    movq    8(%rsp), %r9
     syscall
     ret
 
