@@ -4,6 +4,9 @@
 #include "../util/log.h"
 #include "../util/string.h"
 #include "nostr_types.h"
+#include "subscription/nostr_close.h"
+#include "subscription/nostr_filter.h"
+#include "subscription/nostr_req.h"
 
 static size_t append_string(char* buffer, size_t pos, size_t capacity, const char* str);
 static size_t append_json_string_field(char* buffer, size_t pos, size_t capacity, const char* key, const char* value, bool add_comma);
@@ -66,9 +69,35 @@ bool nostr_event_handler(const char* json, PNostrFuncs nostr_funcs)
     return nostr_funcs->event(&event);
   }
 
-  if (!json_funcs.strncmp(json, &token[1], "REQ", 3)) {
+  if (json_funcs.strncmp(json, &token[1], "REQ", 3)) {
+    // Parse REQ message
+    NostrReqMessage req;
+    if (!nostr_req_parse(&json_funcs, json, token, token_count, &req)) {
+      log_debug("Nostr REQ Error: Invalid REQ format\n");
+      return false;
+    }
+
+    if (nostr_funcs->req != NULL) {
+      return nostr_funcs->req(&req);
+    }
+    return true;
   }
 
+  if (json_funcs.strncmp(json, &token[1], "CLOSE", 5)) {
+    // Parse CLOSE message
+    NostrCloseMessage close_msg;
+    if (!nostr_close_parse(&json_funcs, json, token, token_count, &close_msg)) {
+      log_debug("Nostr CLOSE Error: Invalid CLOSE format\n");
+      return false;
+    }
+
+    if (nostr_funcs->close != NULL) {
+      return nostr_funcs->close(&close_msg);
+    }
+    return true;
+  }
+
+  log_debug("Nostr Error: Unknown message type\n");
   return false;
 }
 

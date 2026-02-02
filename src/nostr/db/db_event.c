@@ -260,6 +260,70 @@ NostrDBError nostr_db_get_event_by_id(NostrDB* db, const uint8_t* id, NostrEvent
 }
 
 // ============================================================================
+// nostr_db_get_event_at_offset
+// ============================================================================
+NostrDBError nostr_db_get_event_at_offset(NostrDB* db, nostr_db_offset_t offset, NostrEventEntity* out)
+{
+  require_not_null(db, NOSTR_DB_ERROR_NULL_PARAM);
+  require_not_null(out, NOSTR_DB_ERROR_NULL_PARAM);
+
+  // Validate offset
+  if (offset < sizeof(NostrDBEventsHeader) || offset >= db->events_header->next_write_offset) {
+    return NOSTR_DB_ERROR_NOT_FOUND;
+  }
+
+  NostrDBEventHeader* evt_header = (NostrDBEventHeader*)((uint8_t*)db->events_map + offset);
+
+  // Check if deleted
+  if (evt_header->flags & NOSTR_DB_EVENT_FLAG_DELETED) {
+    return NOSTR_DB_ERROR_NOT_FOUND;
+  }
+
+  // Deserialize event
+  internal_memset(out, 0, sizeof(NostrEventEntity));
+
+  // Convert ID to hex
+  bytes_to_hex(evt_header->id, 32, out->id);
+
+  // Set created_at
+  out->created_at = evt_header->created_at;
+
+  // Read body
+  NostrDBEventBody* evt_body = (NostrDBEventBody*)((uint8_t*)evt_header + sizeof(NostrDBEventHeader));
+
+  // Convert pubkey to hex
+  bytes_to_hex(evt_body->pubkey, 32, out->pubkey);
+
+  // Convert sig to hex
+  bytes_to_hex(evt_body->sig, 64, out->sig);
+
+  // Set kind
+  out->kind = evt_body->kind;
+
+  // Copy content
+  uint8_t* content_ptr = (uint8_t*)evt_body + sizeof(NostrDBEventBody);
+  size_t   copy_len    = evt_body->content_length;
+  if (copy_len >= sizeof(out->content)) {
+    copy_len = sizeof(out->content) - 1;
+  }
+  internal_memcpy(out->content, content_ptr, copy_len);
+  out->content[copy_len] = '\0';
+
+  // Read tags
+  uint8_t* tags_len_ptr = content_ptr + evt_body->content_length;
+  uint32_t tags_len;
+  internal_memcpy(&tags_len, tags_len_ptr, sizeof(uint32_t));
+
+  uint8_t* tags_ptr  = tags_len_ptr + sizeof(uint32_t);
+  int32_t  tag_count = nostr_db_deserialize_tags(tags_ptr, tags_len, out->tags, NOSTR_EVENT_TAG_LENGTH);
+  if (tag_count > 0) {
+    out->tag_count = (uint32_t)tag_count;
+  }
+
+  return NOSTR_DB_OK;
+}
+
+// ============================================================================
 // nostr_db_delete_event
 // ============================================================================
 NostrDBError nostr_db_delete_event(NostrDB* db, const uint8_t* id)

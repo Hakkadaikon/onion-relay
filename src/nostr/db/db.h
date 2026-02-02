@@ -4,19 +4,11 @@
 #include "../../util/types.h"
 #include "../nostr_types.h"
 #include "db_types.h"
+#include "query/db_query_types.h"
 
 // Forward declarations
 typedef struct NostrDB NostrDB;
 struct NostrFilter;
-
-// ============================================================================
-// Result set for query results
-// ============================================================================
-typedef struct {
-  nostr_db_offset_t* offsets;   // Array of event offsets
-  uint32_t           count;     // Number of results
-  uint32_t           capacity;  // Array capacity
-} NostrDBResultSet;
 
 // ============================================================================
 // Initialization and shutdown
@@ -65,6 +57,15 @@ NostrDBError nostr_db_get_event_by_id(NostrDB* db, const uint8_t* id, NostrEvent
  */
 NostrDBError nostr_db_delete_event(NostrDB* db, const uint8_t* id);
 
+/**
+ * @brief Get an event at a specific offset
+ * @param db NostrDB handle
+ * @param offset Offset in events file (from result set)
+ * @param out Output event structure
+ * @return NOSTR_DB_OK on success, error code on failure
+ */
+NostrDBError nostr_db_get_event_at_offset(NostrDB* db, nostr_db_offset_t offset, NostrEventEntity* out);
+
 // ============================================================================
 // Query operations
 // ============================================================================
@@ -77,12 +78,6 @@ NostrDBError nostr_db_delete_event(NostrDB* db, const uint8_t* id);
  * @return NOSTR_DB_OK on success, error code on failure
  */
 NostrDBError nostr_db_query(NostrDB* db, const struct NostrFilter* filter, NostrDBResultSet* result);
-
-/**
- * @brief Free a result set
- * @param result Result set to free
- */
-void nostr_db_result_free(NostrDBResultSet* result);
 
 // ============================================================================
 // Statistics

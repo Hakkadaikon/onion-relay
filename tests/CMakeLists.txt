@@ -128,7 +128,26 @@ target_link_libraries(
   GTest::gtest_main
 )
 
+add_executable(
+  response-test
+  nostr/response/nostr_response_test.cpp
+  ../src/nostr/response/nostr_response.c
+  ../src/util/log.c
+  ../src/arch/linux/x86_64/asm_syscall.S
+)
+
+target_include_directories(
+  response-test PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/../src
+)
+
+target_link_libraries(
+  response-test
+  GTest::gtest_main
+)
+
 gtest_discover_tests(websocket-test)
 gtest_discover_tests(db-test)
 gtest_discover_tests(event-test)
 gtest_discover_tests(subscription-test)
+gtest_discover_tests(response-test)

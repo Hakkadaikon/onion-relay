@@ -4,13 +4,17 @@
 #define JSMN_HEADER
 #include "../json/json_wrapper.h"
 #include "nostr_types.h"
+#include "subscription/nostr_close.h"
+#include "subscription/nostr_req.h"
 
 typedef bool (*PNostrEventCallback)(const NostrEventEntity* event);
-typedef bool (*PNostrRequestCallback)(const NostrReqEntity* req);
+typedef bool (*PNostrReqCallback)(const NostrReqMessage* req);
+typedef bool (*PNostrCloseCallback)(const NostrCloseMessage* close_msg);
 
 typedef struct {
-  PNostrEventCallback   event;
-  PNostrRequestCallback req;
+  PNostrEventCallback event;
+  PNostrReqCallback   req;
+  PNostrCloseCallback close;
 } NostrFuncs, *PNostrFuncs;
 
 bool extract_nostr_event(const PJsonFuncs funcs, const char* json, const jsontok_t* token, const size_t token_count, NostrEventEntity* event);
