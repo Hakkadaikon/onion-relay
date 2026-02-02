@@ -1,3 +1,4 @@
+#include "../../arch/memory.h"
 #include "../../util/log.h"
 #include "../../util/string.h"
 #include "../nostr_func.h"
@@ -8,6 +9,11 @@ bool extract_nostr_event_sig(
   const jsontok_t* token,
   char*            sig)
 {
+  require_not_null(funcs, false);
+  require_not_null(json, false);
+  require_not_null(token, false);
+  require_not_null(sig, false);
+
   if (!funcs->is_string(token)) {
     log_debug("Nostr Event Error: sig is not string\n");
     return false;
@@ -15,7 +21,7 @@ bool extract_nostr_event_sig(
 
   size_t sig_len = funcs->get_token_length(token);
   if (sig_len != 128) {
-    log_debug("Nostr Event Error: pubkey is not 128 bytes\n");
+    log_debug("Nostr Event Error: sig is not 128 bytes\n");
     return false;
   }
 
@@ -24,6 +30,9 @@ bool extract_nostr_event_sig(
     return false;
   }
 
-  // TODO extract sig
+  // Copy sig string
+  internal_memcpy(sig, &json[token->start], 128);
+  sig[128] = '\0';
+
   return true;
 }

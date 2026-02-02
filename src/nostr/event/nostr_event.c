@@ -7,7 +7,8 @@ extern bool extract_nostr_event_pubkey(const PJsonFuncs funcs, const char* json,
 extern bool extract_nostr_event_kind(const PJsonFuncs funcs, const char* json, const jsontok_t* token, uint32_t* kind);
 extern bool extract_nostr_event_created_at(const PJsonFuncs funcs, const char* json, const jsontok_t* token, time_t* created_at);
 extern bool extract_nostr_event_sig(const PJsonFuncs funcs, const char* json, const jsontok_t* token, char* sig);
-extern bool extract_nostr_event_tags(const PJsonFuncs funcs, const char* json, const jsontok_t* token, NostrTagEntity* tags);
+extern bool extract_nostr_event_tags(const PJsonFuncs funcs, const char* json, const jsontok_t* token, NostrTagEntity* tags, uint32_t* tag_count);
+extern bool extract_nostr_event_content(const PJsonFuncs funcs, const char* json, const jsontok_t* token, char* content, size_t content_capacity);
 
 bool extract_nostr_event(
   const PJsonFuncs  funcs,
@@ -23,6 +24,7 @@ bool extract_nostr_event(
     bool created_at;
     bool sig;
     bool tags;
+    bool content;
   } found;
 
   websocket_memset(&found, 0x00, sizeof(found));
@@ -95,7 +97,18 @@ bool extract_nostr_event(
       found.tags = true;
       log_debug("tags found\n");
 
-      if (!extract_nostr_event_tags(funcs, json, &token[value_index], event->tags)) {
+      if (!extract_nostr_event_tags(funcs, json, &token[value_index], event->tags, &event->tag_count)) {
+        return false;
+      }
+
+      continue;
+    }
+
+    if (funcs->strncmp(json, &token[key_index], "content", 7)) {
+      found.content = true;
+      log_debug("content found\n");
+
+      if (!extract_nostr_event_content(funcs, json, &token[value_index], event->content, sizeof(event->content))) {
         return false;
       }
 
@@ -108,5 +121,6 @@ bool extract_nostr_event(
          found.kind &&
          found.created_at &&
          found.sig &&
-         found.tags;
+         found.tags &&
+         found.content;
 }

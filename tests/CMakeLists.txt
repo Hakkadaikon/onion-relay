@@ -73,5 +73,32 @@ target_link_libraries(
   GTest::gtest_main
 )
 
+add_executable(
+  event-test
+  nostr/event/nostr_event_test.cpp
+  ../src/nostr/event/nostr_event.c
+  ../src/nostr/event/nostr_event_id.c
+  ../src/nostr/event/nostr_event_pubkey.c
+  ../src/nostr/event/nostr_event_kind.c
+  ../src/nostr/event/nostr_event_created_at.c
+  ../src/nostr/event/nostr_event_sig.c
+  ../src/nostr/event/nostr_event_tags.c
+  ../src/nostr/event/nostr_event_content.c
+  ../src/json/json_wrapper.c
+  ../src/util/log.c
+  ../src/arch/linux/x86_64/asm_syscall.S
+)
+
+target_include_directories(
+  event-test PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/../src
+)
+
+target_link_libraries(
+  event-test
+  GTest::gtest_main
+)
+
 gtest_discover_tests(websocket-test)
 gtest_discover_tests(db-test)
+gtest_discover_tests(event-test)

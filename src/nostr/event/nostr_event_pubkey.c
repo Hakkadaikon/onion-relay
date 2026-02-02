@@ -1,3 +1,4 @@
+#include "../../arch/memory.h"
 #include "../../util/log.h"
 #include "../../util/string.h"
 #include "../nostr_func.h"
@@ -8,6 +9,11 @@ bool extract_nostr_event_pubkey(
   const jsontok_t* token,
   char*            pubkey)
 {
+  require_not_null(funcs, false);
+  require_not_null(json, false);
+  require_not_null(token, false);
+  require_not_null(pubkey, false);
+
   if (!funcs->is_string(token)) {
     log_debug("Nostr Event Error: pubkey is not string\n");
     return false;
@@ -24,6 +30,9 @@ bool extract_nostr_event_pubkey(
     return false;
   }
 
-  // TODO extract pubkey
+  // Copy pubkey string
+  internal_memcpy(pubkey, &json[token->start], 64);
+  pubkey[64] = '\0';
+
   return true;
 }
