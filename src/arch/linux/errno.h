@@ -137,15 +137,21 @@
 #define ERFKILL 132          // Operation not possible due to RF-kill
 #define EHWPOISON 133        // Memory page has hardware error
 
-#define errno (*__errno_location())
+// For C++ compilation (tests): use standard library errno and strerror
+#ifdef __cplusplus
+#include <cerrno>
+#include <cstring>
+#else
+// For C compilation (production): use custom implementations
+#define errno (*nostr_errno_location())
 
-static int32_t* __errno_location(void)
+static int32_t* nostr_errno_location(void)
 {
   static thread_local int32_t my_errno = 0;
   return &my_errno;
 }
 
-static inline const char* strerror(const int errnum)
+static inline const char* nostr_strerror(const int errnum)
 {
   switch (errnum) {
     case EPERM:
@@ -414,4 +420,9 @@ static inline const char* strerror(const int errnum)
       return "Unknown error";
   }
 }
-#endif
+
+#define strerror nostr_strerror
+
+#endif  // __cplusplus
+
+#endif  // NOSTR_LINUX_ERRNO_H_

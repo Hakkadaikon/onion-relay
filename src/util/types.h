@@ -1,6 +1,18 @@
 #ifndef NOSTR_UTIL_TYPES_H_
 #define NOSTR_UTIL_TYPES_H_
 
+// C++ compilation (for tests): use standard library types
+#ifdef __cplusplus
+#include <cstddef>
+#include <cstdint>
+#include <ctime>
+
+// For C++, use standard bool
+// (already defined in C++)
+
+#else
+// C compilation (for production): use custom types (no libc dependency)
+
 #ifndef _INT8_T
 #define _INT8_T
 typedef char int8_t;
@@ -86,6 +98,8 @@ typedef uint64_t clock_t;
 #ifndef NULL
 #define NULL ((void*)0)
 #endif
+
+#endif  // __cplusplus
 
 #ifndef STDOUT_FILENO
 #define STDOUT_FILENO 1  // Standard output.

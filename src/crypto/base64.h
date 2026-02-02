@@ -57,8 +57,12 @@ static inline bool base64_encode(const uint8_t* input, const size_t input_length
 static inline bool is_base64(const char* str)
 {
   require_not_null(str, false);
-  size_t len = strlen(str);
-  require_valid_length(len - base64_output_block_size, false);
+  size_t len = nostr_strlen(str);
+
+  // Base64 string must be at least 4 characters and multiple of 4
+  if (len < base64_output_block_size || len % base64_output_block_size != 0) {
+    return false;
+  }
 
   size_t padding_count = 0;
   for (size_t i = 1; i <= 2; i++) {
@@ -67,11 +71,23 @@ static inline bool is_base64(const char* str)
     }
   }
 
+  // Padding can only be 0, 1, or 2 characters
+  if (padding_count > 2) {
+    return false;
+  }
+
   size_t base64_length = len - padding_count;
 
-  // base64 char check
+  // base64 char check (excluding padding)
   for (size_t i = 0; i < base64_length; i++) {
     if (!is_base64_char(str[i])) {
+      return false;
+    }
+  }
+
+  // Check that padding is only at the end
+  for (size_t i = base64_length; i < len; i++) {
+    if (str[i] != base64_padding_char) {
       return false;
     }
   }

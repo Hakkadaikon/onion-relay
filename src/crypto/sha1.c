@@ -24,9 +24,12 @@ void sha1Final(uint8_t digest[20], Sha1Ctx* context);
 
 bool sha1(const char* input, const size_t input_len, uint8_t* output)
 {
-  require_not_null(input, false);
   require_not_null(output, false);
-  require_valid_length(input_len, false);
+  // Note: SHA-1 of empty input is valid: da39a3ee5e6b4b0d3255bfef95601890afd80709
+  // Only require input to be non-null if input_len > 0
+  if (input_len > 0) {
+    require_not_null(input, false);
+  }
 
   Sha1Ctx  ctx;
   uint32_t ii;

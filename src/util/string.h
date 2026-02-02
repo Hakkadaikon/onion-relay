@@ -3,6 +3,16 @@
 
 #include "../util/types.h"
 
+// For C++ compilation (tests): use standard library functions
+#ifdef __cplusplus
+#include <cstring>
+// Use nostr_ prefix for custom functions that differ from standard
+#define NOSTR_USE_CUSTOM_STRING_FUNCS 0
+#else
+// For C compilation (production): use custom implementations
+#define NOSTR_USE_CUSTOM_STRING_FUNCS 1
+#endif
+
 #define value(ptr) (*ptr)
 #define is_null(str) (str == NULL)
 #define require_not_null(ptr, ret_val) \
@@ -117,7 +127,9 @@ static inline bool chrcmp(const char a, const char b)
   return true;
 }
 
-static inline bool strncmp(
+// Custom strncmp: case-insensitive comparison, returns bool
+// Different from standard strncmp which is case-sensitive and returns int
+static inline bool nostr_strncmp(
   const char*  str1,
   const char*  str2,
   const size_t capacity)
@@ -134,6 +146,10 @@ static inline bool strncmp(
 
   return true;
 }
+
+#if NOSTR_USE_CUSTOM_STRING_FUNCS
+#define strncmp nostr_strncmp
+#endif
 
 static inline bool strncmp_sensitive(
   const char*  str1,
@@ -286,7 +302,7 @@ static inline int32_t skip_token(const char* buffer, const size_t buffer_size, c
   return -1;
 }
 
-static size_t inline strlen(const char* str)
+static size_t inline nostr_strlen(const char* str)
 {
   require_not_null(str, 0);
 
@@ -297,7 +313,7 @@ static size_t inline strlen(const char* str)
   return len - 1;
 }
 
-static size_t inline strnlen(const char* str, const size_t capacity)
+static size_t inline nostr_strnlen(const char* str, const size_t capacity)
 {
   require_not_null(str, 0);
   require_valid_length(capacity, 0);
@@ -308,6 +324,11 @@ static size_t inline strnlen(const char* str, const size_t capacity)
 
   return len - 1;
 }
+
+#if NOSTR_USE_CUSTOM_STRING_FUNCS
+#define strlen nostr_strlen
+#define strnlen nostr_strnlen
+#endif
 
 static inline int32_t calc_digit(int32_t value)
 {
