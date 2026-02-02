@@ -99,6 +99,36 @@ target_link_libraries(
   GTest::gtest_main
 )
 
+add_executable(
+  subscription-test
+  nostr/subscription/nostr_subscription_test.cpp
+  ../src/nostr/subscription/nostr_filter.c
+  ../src/nostr/subscription/nostr_filter_ids.c
+  ../src/nostr/subscription/nostr_filter_authors.c
+  ../src/nostr/subscription/nostr_filter_kinds.c
+  ../src/nostr/subscription/nostr_filter_since.c
+  ../src/nostr/subscription/nostr_filter_until.c
+  ../src/nostr/subscription/nostr_filter_limit.c
+  ../src/nostr/subscription/nostr_filter_tags.c
+  ../src/nostr/subscription/nostr_req.c
+  ../src/nostr/subscription/nostr_close.c
+  ../src/nostr/subscription/nostr_subscription.c
+  ../src/json/json_wrapper.c
+  ../src/util/log.c
+  ../src/arch/linux/x86_64/asm_syscall.S
+)
+
+target_include_directories(
+  subscription-test PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/../src
+)
+
+target_link_libraries(
+  subscription-test
+  GTest::gtest_main
+)
+
 gtest_discover_tests(websocket-test)
 gtest_discover_tests(db-test)
 gtest_discover_tests(event-test)
+gtest_discover_tests(subscription-test)
