@@ -34,11 +34,18 @@ add_executable(
   nostr/db/db_mmap_test.cpp
   nostr/db/db_init_test.cpp
   nostr/db/db_event_test.cpp
+  nostr/db/db_index_test.cpp
   ../src/nostr/db/db_tags.c
   ../src/nostr/db/db_file.c
   ../src/nostr/db/db_mmap.c
   ../src/nostr/db/db_init.c
   ../src/nostr/db/db_event.c
+  ../src/nostr/db/index/db_index_id.c
+  ../src/nostr/db/index/db_index_timeline.c
+  ../src/nostr/db/index/db_index_kind.c
+  ../src/nostr/db/index/db_index_pubkey.c
+  ../src/nostr/db/index/db_index_pubkey_kind.c
+  ../src/nostr/db/index/db_index_tag.c
   ../src/util/log.c
   ../src/arch/linux/x86_64/asm_syscall.S
 )

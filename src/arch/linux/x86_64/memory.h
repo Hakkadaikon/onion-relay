@@ -68,4 +68,30 @@ static inline int32_t linux_x8664_memset_s(void* s, const size_t smax, const int
   return 0;
 }
 
+/*
+ * memcmp: Compare memory areas
+ *
+ * @s1: First memory area
+ * @s2: Second memory area
+ * @n: Number of bytes to compare
+ *
+ * Returns: 0 if equal, <0 if s1 < s2, >0 if s1 > s2
+ */
+static inline int32_t linux_x8664_memcmp(const void* s1, const void* s2, const size_t n)
+{
+  require_not_null(s1, -1);
+  require_not_null(s2, 1);
+
+  const unsigned char* p1 = (const unsigned char*)s1;
+  const unsigned char* p2 = (const unsigned char*)s2;
+
+  for (size_t i = 0; i < n; i++) {
+    if (p1[i] != p2[i]) {
+      return (int32_t)p1[i] - (int32_t)p2[i];
+    }
+  }
+
+  return 0;
+}
+
 #endif

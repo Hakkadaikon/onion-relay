@@ -28,4 +28,9 @@ static inline int32_t internal_memset_s(void* s, const size_t smax, const int32_
   return linux_x8664_memset_s(s, smax, c, n);
 }
 
+static inline int32_t internal_memcmp(const void* s1, const void* s2, const size_t n)
+{
+  return linux_x8664_memcmp(s1, s2, n);
+}
+
 #endif

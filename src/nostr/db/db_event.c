@@ -6,6 +6,23 @@
 #include "db_mmap.h"
 
 // ============================================================================
+// Helper: Convert single hex char to value
+// ============================================================================
+static int32_t hex_char_to_value(char c)
+{
+  if (is_digit(c)) {
+    return c - '0';
+  }
+  if (is_lower(c) && c <= 'f') {
+    return c - 'a' + 10;
+  }
+  if (is_upper(c) && c <= 'F') {
+    return c - 'A' + 10;
+  }
+  return -1;
+}
+
+// ============================================================================
 // Helper: Convert hex string to binary (32 bytes = 64 hex chars)
 // ============================================================================
 static bool hex_to_bytes(const char* hex, size_t hex_len, uint8_t* out, size_t out_len)
@@ -15,28 +32,10 @@ static bool hex_to_bytes(const char* hex, size_t hex_len, uint8_t* out, size_t o
   }
 
   for (size_t i = 0; i < out_len; i++) {
-    char high = hex[i * 2];
-    char low  = hex[i * 2 + 1];
+    int32_t h = hex_char_to_value(hex[i * 2]);
+    int32_t l = hex_char_to_value(hex[i * 2 + 1]);
 
-    uint8_t h = 0, l = 0;
-
-    if (high >= '0' && high <= '9') {
-      h = (uint8_t)(high - '0');
-    } else if (high >= 'a' && high <= 'f') {
-      h = (uint8_t)(high - 'a' + 10);
-    } else if (high >= 'A' && high <= 'F') {
-      h = (uint8_t)(high - 'A' + 10);
-    } else {
-      return false;
-    }
-
-    if (low >= '0' && low <= '9') {
-      l = (uint8_t)(low - '0');
-    } else if (low >= 'a' && low <= 'f') {
-      l = (uint8_t)(low - 'a' + 10);
-    } else if (low >= 'A' && low <= 'F') {
-      l = (uint8_t)(low - 'A' + 10);
-    } else {
+    if (h < 0 || l < 0) {
       return false;
     }
 
@@ -65,12 +64,7 @@ static void bytes_to_hex(const uint8_t* bytes, size_t len, char* hex)
 // ============================================================================
 static bool id_equals(const uint8_t* a, const uint8_t* b)
 {
-  for (int i = 0; i < 32; i++) {
-    if (a[i] != b[i]) {
-      return false;
-    }
-  }
-  return true;
+  return internal_memcmp(a, b, 32) == 0;
 }
 
 // ============================================================================

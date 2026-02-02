@@ -76,10 +76,8 @@ static bool validate_events_header(const NostrDBEventsHeader* header)
   require_not_null(header, false);
 
   // Check magic
-  for (int i = 0; i < NOSTR_DB_MAGIC_SIZE; i++) {
-    if (header->magic[i] != NOSTR_DB_MAGIC_EVENTS[i]) {
-      return false;
-    }
+  if (internal_memcmp(header->magic, NOSTR_DB_MAGIC_EVENTS, NOSTR_DB_MAGIC_SIZE) != 0) {
+    return false;
   }
 
   // Check version
@@ -99,10 +97,8 @@ static bool validate_index_header(const NostrDBIndexHeader* header, const char* 
   require_not_null(expected_magic, false);
 
   // Check magic
-  for (int i = 0; i < NOSTR_DB_MAGIC_SIZE; i++) {
-    if (header->magic[i] != expected_magic[i]) {
-      return false;
-    }
+  if (internal_memcmp(header->magic, expected_magic, NOSTR_DB_MAGIC_SIZE) != 0) {
+    return false;
   }
 
   // Check version
