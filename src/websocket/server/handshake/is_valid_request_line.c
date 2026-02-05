@@ -49,14 +49,18 @@ static bool is_valid_target(char* value)
 
 static bool is_valid_http_version(char* value)
 {
-  bool has_error = false;
-
-  if (!IS_VALID_HTTP_VERSION(value, "http/1.1") &&
-      !IS_VALID_HTTP_VERSION(value, "http/2.0") &&
-      !IS_VALID_HTTP_VERSION(value, "http/3.0")) {
-    log_error("Invalid websocket request line: Invalid HTTP version(Not 1.1/2.0/3.0)\n");
-    return false;
+  if (IS_VALID_HTTP_VERSION(value, "http/1.1")) {
+    return true;
   }
 
-  return true;
+  if (IS_VALID_HTTP_VERSION(value, "http/2.0")) {
+    return true;
+  }
+
+  if (IS_VALID_HTTP_VERSION(value, "http/3.0")) {
+    return true;
+  }
+
+  log_error("Invalid websocket request line: Invalid HTTP version(Not 1.1/2.0/3.0)\n");
+  return false;
 }

@@ -32,7 +32,13 @@ bool websocket_server_loop(const WebSocketLoopArgs* args)
   buffer.request  = websocket_alloc(buffer.capacity);
   buffer.response = websocket_alloc(buffer.capacity);
 
-  if (!buffer.request || !buffer.response) {
+  if (!buffer.request) {
+    log_error("Failed to allocate buffers\n");
+    websocket_close(epoll_fd);
+    return false;
+  }
+
+  if (!buffer.response) {
     log_error("Failed to allocate buffers\n");
     websocket_close(epoll_fd);
     return false;

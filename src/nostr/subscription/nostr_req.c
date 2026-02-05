@@ -100,8 +100,12 @@ bool nostr_req_parse(
   }
 
   size_t req_len = funcs->get_token_length(req_token);
-  if (req_len != 3 || !strncmp(&json[req_token->start], "REQ", 3)) {
-    // Not a REQ message, but that's OK - caller can check
+  if (req_len != 3) {
+    log_debug("REQ error: not a REQ message\n");
+    return false;
+  }
+
+  if (!strncmp(&json[req_token->start], "REQ", 3)) {
     log_debug("REQ error: not a REQ message\n");
     return false;
   }
@@ -114,7 +118,12 @@ bool nostr_req_parse(
   }
 
   size_t sub_len = funcs->get_token_length(sub_token);
-  if (sub_len == 0 || sub_len > NOSTR_REQ_SUBSCRIPTION_ID_LENGTH) {
+  if (sub_len == 0) {
+    log_debug("REQ error: subscription_id length invalid\n");
+    return false;
+  }
+
+  if (sub_len > NOSTR_REQ_SUBSCRIPTION_ID_LENGTH) {
     log_debug("REQ error: subscription_id length invalid\n");
     return false;
   }

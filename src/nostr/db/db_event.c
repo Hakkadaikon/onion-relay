@@ -268,7 +268,11 @@ NostrDBError nostr_db_get_event_at_offset(NostrDB* db, nostr_db_offset_t offset,
   require_not_null(out, NOSTR_DB_ERROR_NULL_PARAM);
 
   // Validate offset
-  if (offset < sizeof(NostrDBEventsHeader) || offset >= db->events_header->next_write_offset) {
+  if (offset < sizeof(NostrDBEventsHeader)) {
+    return NOSTR_DB_ERROR_NOT_FOUND;
+  }
+
+  if (offset >= db->events_header->next_write_offset) {
     return NOSTR_DB_ERROR_NOT_FOUND;
   }
 

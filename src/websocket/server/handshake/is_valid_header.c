@@ -26,30 +26,23 @@ bool is_valid_request_header(PHTTPRequestHeaderLine restrict headers, size_t hea
 static bool is_valid_request_header_line(PHTTPRequestHeaderLine restrict line)
 {
   if (IS_VALID_KEY(line->key, "host")) {
-    if (is_valid_host(line->value)) {
-      return true;
-    }
-    return false;
-  } else if (IS_VALID_KEY(line->key, "upgrade")) {
-    if (is_valid_upgrade(line->value)) {
-      return true;
-    }
-    return false;
-  } else if (IS_VALID_KEY(line->key, "connection")) {
-    if (is_valid_connection(line->value)) {
-      return true;
-    }
-    return false;
-  } else if (IS_VALID_KEY(line->key, "sec-webSocket-key")) {
-    if (is_valid_websocket_key(line->value)) {
-      return true;
-    }
-    return false;
-  } else if (IS_VALID_KEY(line->key, "sec-websocket-version")) {
-    if (is_valid_version(line->value)) {
-      return true;
-    }
-    return false;
+    return is_valid_host(line->value);
+  }
+
+  if (IS_VALID_KEY(line->key, "upgrade")) {
+    return is_valid_upgrade(line->value);
+  }
+
+  if (IS_VALID_KEY(line->key, "connection")) {
+    return is_valid_connection(line->value);
+  }
+
+  if (IS_VALID_KEY(line->key, "sec-webSocket-key")) {
+    return is_valid_websocket_key(line->value);
+  }
+
+  if (IS_VALID_KEY(line->key, "sec-websocket-version")) {
+    return is_valid_version(line->value);
   }
 
   return true;

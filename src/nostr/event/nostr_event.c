@@ -1,5 +1,6 @@
 #include "../../util/allocator.h"
 #include "../../util/log.h"
+#include "../../util/string.h"
 #include "../nostr_func.h"
 
 extern bool extract_nostr_event_id(const PJsonFuncs funcs, const char* json, const jsontok_t* token, char* id);
@@ -116,11 +117,13 @@ bool extract_nostr_event(
     }
   }
 
-  return found.id &&
-         found.pubkey &&
-         found.kind &&
-         found.created_at &&
-         found.sig &&
-         found.tags &&
-         found.content;
+  require(found.id, false);
+  require(found.pubkey, false);
+  require(found.kind, false);
+  require(found.created_at, false);
+  require(found.sig, false);
+  require(found.tags, false);
+  require(found.content, false);
+
+  return true;
 }

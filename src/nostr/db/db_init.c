@@ -193,9 +193,11 @@ static NostrDBError open_or_create_file(
 // ============================================================================
 static void close_file(int32_t* fd, void** map, size_t* size)
 {
-  if (!is_null(*map) && *size > 0) {
-    nostr_db_msync(*map, *size, false);
-    nostr_db_munmap(*map, *size);
+  if (!is_null(*map)) {
+    if (*size > 0) {
+      nostr_db_msync(*map, *size, false);
+      nostr_db_munmap(*map, *size);
+    }
     *map = NULL;
   }
 

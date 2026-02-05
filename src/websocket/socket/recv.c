@@ -30,15 +30,19 @@ static int32_t get_recv_err(const ssize_t bytes_read, const int32_t sock_fd)
     return WEBSOCKET_ERRORCODE_SOCKET_CLOSE_ERROR;
   }
 
-  if (bytes_read == WEBSOCKET_SYSCALL_ERROR) {
-    if (errno == EINTR || errno == EAGAIN) {
-      return WEBSOCKET_ERRORCODE_CONTINUABLE_ERROR;
-    }
-
-    str_info("Failed to recv(). reason : ", strerror(errno));
-    var_info("socket : ", sock_fd);
-    return WEBSOCKET_ERRORCODE_SOCKET_CLOSE_ERROR;
+  if (bytes_read != WEBSOCKET_SYSCALL_ERROR) {
+    return WEBSOCKET_ERRORCODE_NONE;
   }
 
-  return WEBSOCKET_ERRORCODE_NONE;
+  if (errno == EINTR) {
+    return WEBSOCKET_ERRORCODE_CONTINUABLE_ERROR;
+  }
+
+  if (errno == EAGAIN) {
+    return WEBSOCKET_ERRORCODE_CONTINUABLE_ERROR;
+  }
+
+  str_info("Failed to recv(). reason : ", strerror(errno));
+  var_info("socket : ", sock_fd);
+  return WEBSOCKET_ERRORCODE_SOCKET_CLOSE_ERROR;
 }

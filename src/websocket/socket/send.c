@@ -19,14 +19,18 @@ int32_t websocket_send(const int32_t sock_fd, const size_t buffer_size, const ch
 
 static int32_t get_send_err(ssize_t bytes_send)
 {
-  if (bytes_send == WEBSOCKET_SYSCALL_ERROR) {
-    if (errno == EAGAIN || errno == EWOULDBLOCK) {
-      return WEBSOCKET_ERRORCODE_CONTINUABLE_ERROR;
-    }
-
-    return WEBSOCKET_ERRORCODE_SOCKET_CLOSE_ERROR;
-    str_error("Failed to send(). reason : ", strerror(errno));
+  if (bytes_send != WEBSOCKET_SYSCALL_ERROR) {
+    return WEBSOCKET_ERRORCODE_NONE;
   }
 
-  return WEBSOCKET_ERRORCODE_NONE;
+  if (errno == EAGAIN) {
+    return WEBSOCKET_ERRORCODE_CONTINUABLE_ERROR;
+  }
+
+  if (errno == EWOULDBLOCK) {
+    return WEBSOCKET_ERRORCODE_CONTINUABLE_ERROR;
+  }
+
+  str_error("Failed to send(). reason : ", strerror(errno));
+  return WEBSOCKET_ERRORCODE_SOCKET_CLOSE_ERROR;
 }

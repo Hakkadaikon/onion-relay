@@ -20,7 +20,12 @@ bool extract_nostr_event_created_at(
 
   // Parse integer from token
   size_t len = funcs->get_token_length(token);
-  if (len == 0 || len > 20) {  // Max 20 digits for int64/time_t
+  if (len == 0) {
+    log_debug("Nostr Event Error: created_at length invalid\n");
+    return false;
+  }
+
+  if (len > 20) {  // Max 20 digits for int64/time_t
     log_debug("Nostr Event Error: created_at length invalid\n");
     return false;
   }

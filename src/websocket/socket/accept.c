@@ -32,14 +32,18 @@ int32_t websocket_accept(const int32_t sock_fd)
 
 static int32_t get_accept_err(const int32_t client_sock)
 {
-  if (client_sock < 0) {
-    if (errno == EINTR || errno == EAGAIN) {
-      return WEBSOCKET_ERRORCODE_CONTINUABLE_ERROR;
-    }
-
-    str_error("accept() failed. reason : ", strerror(errno));
-    return WEBSOCKET_ERRORCODE_FATAL_ERROR;
+  if (client_sock >= 0) {
+    return WEBSOCKET_ERRORCODE_NONE;
   }
 
-  return WEBSOCKET_ERRORCODE_NONE;
+  if (errno == EINTR) {
+    return WEBSOCKET_ERRORCODE_CONTINUABLE_ERROR;
+  }
+
+  if (errno == EAGAIN) {
+    return WEBSOCKET_ERRORCODE_CONTINUABLE_ERROR;
+  }
+
+  str_error("accept() failed. reason : ", strerror(errno));
+  return WEBSOCKET_ERRORCODE_FATAL_ERROR;
 }

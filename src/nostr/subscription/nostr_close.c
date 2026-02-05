@@ -70,7 +70,12 @@ bool nostr_close_parse(
   }
 
   size_t close_len = funcs->get_token_length(close_token);
-  if (close_len != 5 || !strncmp(&json[close_token->start], "CLOSE", 5)) {
+  if (close_len != 5) {
+    log_debug("CLOSE error: not a CLOSE message\n");
+    return false;
+  }
+
+  if (!strncmp(&json[close_token->start], "CLOSE", 5)) {
     log_debug("CLOSE error: not a CLOSE message\n");
     return false;
   }
@@ -83,7 +88,12 @@ bool nostr_close_parse(
   }
 
   size_t sub_len = funcs->get_token_length(sub_token);
-  if (sub_len == 0 || sub_len > NOSTR_CLOSE_SUBSCRIPTION_ID_LENGTH) {
+  if (sub_len == 0) {
+    log_debug("CLOSE error: subscription_id length invalid\n");
+    return false;
+  }
+
+  if (sub_len > NOSTR_CLOSE_SUBSCRIPTION_ID_LENGTH) {
     log_debug("CLOSE error: subscription_id length invalid\n");
     return false;
   }

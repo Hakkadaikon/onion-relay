@@ -20,7 +20,12 @@ bool extract_nostr_event_kind(
 
   // Parse integer from token
   size_t len = funcs->get_token_length(token);
-  if (len == 0 || len > 10) {  // Max 10 digits for uint32
+  if (len == 0) {
+    log_debug("Nostr Event Error: kind length invalid\n");
+    return false;
+  }
+
+  if (len > 10) {  // Max 10 digits for uint32
     log_debug("Nostr Event Error: kind length invalid\n");
     return false;
   }

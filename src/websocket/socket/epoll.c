@@ -25,12 +25,12 @@ bool websocket_epoll_add(const int32_t epoll_fd, const int32_t sock_fd, WebSocke
 
 bool websocket_epoll_del(const int32_t epoll_fd, const int32_t sock_fd)
 {
-  if (internal_epoll_ctl(epoll_fd, EPOLL_CTL_DEL, sock_fd, NULL) == WEBSOCKET_SYSCALL_ERROR) {
-    str_error("Failed to epoll_ctl(CTL_DEL). reason : ", strerror(errno));
-    return false;
+  if (internal_epoll_ctl(epoll_fd, EPOLL_CTL_DEL, sock_fd, NULL) != WEBSOCKET_SYSCALL_ERROR) {
+    return true;
   }
 
-  return true;
+  str_error("Failed to epoll_ctl(CTL_DEL). reason : ", strerror(errno));
+  return false;
 }
 
 int32_t websocket_epoll_create()
@@ -67,17 +67,21 @@ int32_t websocket_epoll_wait(const int32_t epoll_fd, WebSocketEpollEvent* events
 
 static int32_t get_epoll_wait_err(const int32_t num_of_event)
 {
-  if (num_of_event < 0) {
-    if (errno == EINTR || errno == EAGAIN) {
-      return WEBSOCKET_ERRORCODE_CONTINUABLE_ERROR;
-    }
-
-    str_error("Failed to epoll_wait(). reason : ", strerror(errno));
-    log_error("The system will abort processing.\n");
-    return WEBSOCKET_ERRORCODE_FATAL_ERROR;
+  if (num_of_event >= 0) {
+    return WEBSOCKET_ERRORCODE_NONE;
   }
 
-  return WEBSOCKET_ERRORCODE_NONE;
+  if (errno == EINTR) {
+    return WEBSOCKET_ERRORCODE_CONTINUABLE_ERROR;
+  }
+
+  if (errno == EAGAIN) {
+    return WEBSOCKET_ERRORCODE_CONTINUABLE_ERROR;
+  }
+
+  str_error("Failed to epoll_wait(). reason : ", strerror(errno));
+  log_error("The system will abort processing.\n");
+  return WEBSOCKET_ERRORCODE_FATAL_ERROR;
 }
 
 int32_t websocket_epoll_getfd(const WebSocketEpollEvent* event)

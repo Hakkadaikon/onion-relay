@@ -159,9 +159,9 @@ static size_t append_json_nips_array(char* buffer, size_t pos, size_t capacity, 
 
 bool nostr_nip11_response(const PNostrRelayInfo info, const size_t buffer_capacity, char* buffer)
 {
-  if (is_null(info) || is_null(buffer) || buffer_capacity == 0) {
-    return false;
-  }
+  require_not_null(info, false);
+  require_not_null(buffer, false);
+  require_valid_length(buffer_capacity, false);
 
   websocket_memset(buffer, 0x00, buffer_capacity);
 

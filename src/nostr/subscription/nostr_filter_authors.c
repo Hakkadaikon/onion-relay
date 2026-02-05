@@ -88,7 +88,12 @@ bool extract_nostr_filter_authors(
     }
 
     size_t hex_len = funcs->get_token_length(author_token);
-    if (hex_len == 0 || hex_len > 64) {
+    if (hex_len == 0) {
+      token_idx++;
+      continue;
+    }
+
+    if (hex_len > 64) {
       token_idx++;
       continue;
     }

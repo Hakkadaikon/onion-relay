@@ -30,7 +30,11 @@ static bool handle_nip11_request(
   PHTTPRequest restrict request,
   const WebSocketCallbacks* callbacks)
 {
-  if (is_null(callbacks) || is_null(callbacks->handshake_callback)) {
+  if (is_null(callbacks)) {
+    return false;
+  }
+
+  if (is_null(callbacks->handshake_callback)) {
     return false;
   }
 

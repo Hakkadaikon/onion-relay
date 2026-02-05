@@ -12,9 +12,10 @@ static bool copy_token_string(
   char*            buffer,
   size_t           buffer_size)
 {
-  if (is_null(json) || is_null(token) || is_null(buffer) || buffer_size == 0) {
-    return false;
-  }
+  require_not_null(json, false);
+  require_not_null(token, false);
+  require_not_null(buffer, false);
+  require_valid_length(buffer_size, false);
 
   size_t len = (size_t)(token->end - token->start);
   if (len >= buffer_size) {

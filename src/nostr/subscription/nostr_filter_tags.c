@@ -102,7 +102,12 @@ bool extract_nostr_filter_tag(
     }
 
     size_t val_len = funcs->get_token_length(val_token);
-    if (val_len == 0 || val_len > 64) {
+    if (val_len == 0) {
+      token_idx++;
+      continue;
+    }
+
+    if (val_len > 64) {
       token_idx++;
       continue;
     }

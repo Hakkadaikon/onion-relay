@@ -30,7 +30,15 @@ static int64_t decode_json_string(
   char*       dst,
   size_t      dst_capacity)
 {
-  if (is_null(src) || is_null(dst) || dst_capacity == 0) {
+  if (is_null(src)) {
+    return -1;
+  }
+
+  if (is_null(dst)) {
+    return -1;
+  }
+
+  if (dst_capacity == 0) {
     return -1;
   }
 
