@@ -3,13 +3,13 @@
 cd $(dirname $0)
 CURRENT_PATH=$(realpath .)
 
-ECHOBACK_SERVER_PATH=../examples/echoback
+RELAY_PATH=../
 
 curl -LO https://musl.cc/x86_64-linux-musl-native.tgz
 tar xfz x86_64-linux-musl-native.tgz
 
 rm -rf ../build
-make clean -C ${ECHOBACK_SERVER_PATH} 1>/dev/null
+make clean -C ${RELAY_PATH} 1>/dev/null
 
 export LD=${CURRENT_PATH}/x86_64-linux-musl-native/bin/ld
 export LIBRARY_PATH=${CURRENT_PATH}/x86_64-linux-musl-native/lib:$LIBRARY_PATH
@@ -25,7 +25,7 @@ BUILD=release \
 CC=${CURRENT_PATH}/x86_64-linux-musl-native/bin/gcc \
 CXX=${CURRENT_PATH}/x86_64-linux-musl-native/bin/g++ \
 LD=${CURRENT_PATH}/x86_64-linux-musl-native/bin/ld \
-make -C ${ECHOBACK_SERVER_PATH} 1>/dev/null
+make -C ${RELAY_PATH} 1>/dev/null
 
 rm -f x86_64-linux-musl-native.tgz
 rm -rf x86_64-linux-musl-native/
