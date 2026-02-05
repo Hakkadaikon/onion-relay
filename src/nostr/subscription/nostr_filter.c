@@ -255,13 +255,17 @@ bool nostr_filter_matches(
   // Check ids filter (prefix match supported)
   if (filter->ids_count > 0) {
     bool    found = false;
-    uint8_t event_id_bin[32];
-    hex_to_bytes(event->id, 64, event_id_bin, 32);
+    uint8_t event_id_bin[32] = {0};
+    size_t  converted        = hex_to_bytes(event->id, 64, event_id_bin, 32);
 
-    for (size_t i = 0; i < filter->ids_count; i++) {
-      if (bytes_match_prefix(event_id_bin, filter->ids[i].value, filter->ids[i].prefix_len)) {
-        found = true;
-        break;
+    // Only proceed if we successfully converted at least some bytes
+    if (converted > 0) {
+      for (size_t i = 0; i < filter->ids_count; i++) {
+        if (filter->ids[i].prefix_len <= converted &&
+            bytes_match_prefix(event_id_bin, filter->ids[i].value, filter->ids[i].prefix_len)) {
+          found = true;
+          break;
+        }
       }
     }
     if (!found) {
@@ -272,13 +276,17 @@ bool nostr_filter_matches(
   // Check authors filter (prefix match supported)
   if (filter->authors_count > 0) {
     bool    found = false;
-    uint8_t event_pubkey_bin[32];
-    hex_to_bytes(event->pubkey, 64, event_pubkey_bin, 32);
+    uint8_t event_pubkey_bin[32] = {0};
+    size_t  converted            = hex_to_bytes(event->pubkey, 64, event_pubkey_bin, 32);
 
-    for (size_t i = 0; i < filter->authors_count; i++) {
-      if (bytes_match_prefix(event_pubkey_bin, filter->authors[i].value, filter->authors[i].prefix_len)) {
-        found = true;
-        break;
+    // Only proceed if we successfully converted at least some bytes
+    if (converted > 0) {
+      for (size_t i = 0; i < filter->authors_count; i++) {
+        if (filter->authors[i].prefix_len <= converted &&
+            bytes_match_prefix(event_pubkey_bin, filter->authors[i].value, filter->authors[i].prefix_len)) {
+          found = true;
+          break;
+        }
       }
     }
     if (!found) {
@@ -341,9 +349,9 @@ bool nostr_filter_matches(
           // For 'e' and 'p' tags, compare binary
           if (ftag->name == 'e' || ftag->name == 'p') {
             if (eval_len == 64) {
-              uint8_t eval_bin[32];
-              hex_to_bytes(eval, 64, eval_bin, 32);
-              if (internal_memcmp(eval_bin, ftag->values[fvi], 32) == 0) {
+              uint8_t eval_bin[32] = {0};
+              size_t  converted    = hex_to_bytes(eval, 64, eval_bin, 32);
+              if (converted == 32 && internal_memcmp(eval_bin, ftag->values[fvi], 32) == 0) {
                 found = true;
               }
             }

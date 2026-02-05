@@ -59,6 +59,7 @@ bool log_dump_local(const int32_t fd, const char* restrict str, const char* file
   (void)internal_write(fd, "] ", 2);
 #endif
   (void)internal_write(fd, str, len);
+  return true;
 }
 
 bool var_dump_local(const int32_t fd, const char* restrict str, const int32_t value)

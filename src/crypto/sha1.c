@@ -49,7 +49,7 @@ bool sha1(const char* input, const size_t input_len, uint8_t* output)
 void sha1Transform(uint32_t state[5], const uint8_t buffer[64])
 {
   uint32_t     a, b, c, d, e;
-  Char64Long16 block[1];  // use array to appear as a pointer
+  Char64Long16 block[1] = {{{0}}};  // use array to appear as a pointer, initialized
 
   websocket_memcpy(block, buffer, sizeof(Char64Long16));
 
@@ -150,8 +150,12 @@ void sha1Transform(uint32_t state[5], const uint8_t buffer[64])
   state[4] += e;
 
   // Wipe variables
-  a = b = c = d = e = 0;
-  websocket_memset_s(block, sizeof(block), '\0', sizeof(block));
+  websocket_memset_s(&a, sizeof(a), 0, sizeof(a));
+  websocket_memset_s(&b, sizeof(b), 0, sizeof(b));
+  websocket_memset_s(&c, sizeof(c), 0, sizeof(c));
+  websocket_memset_s(&d, sizeof(d), 0, sizeof(d));
+  websocket_memset_s(&e, sizeof(e), 0, sizeof(e));
+  websocket_memset_s(block, sizeof(block), 0, sizeof(block));
 }
 
 /**
