@@ -181,6 +181,8 @@ static bool build_handshake_packet(
   ptr += ACCEPT_KEY_LEN;
 
   websocket_memcpy(ptr, "\r\n\r\n", 4);
+  ptr += 4;
+  *ptr = '\0';
 
   return true;
 }

@@ -1,3 +1,4 @@
+#include "arch/mmap.h"
 #include "nostr/db/db.h"
 #include "nostr/db/query/db_query.h"
 #include "nostr/nostr_func.h"
@@ -14,7 +15,7 @@
 // Global state
 // ============================================================================
 static NostrDB*                 g_db                   = NULL;
-static NostrSubscriptionManager g_subscription_manager = {0};
+static NostrSubscriptionManager g_subscription_manager = {NULL, 0};
 static bool                     g_db_initialized       = false;
 
 // ============================================================================
@@ -39,7 +40,7 @@ static bool send_websocket_message(int32_t client_sock, const char* message, siz
 
   if (message_len <= 125) {
     response_entity.payload_len     = (uint8_t)message_len;
-    response_entity.ext_payload_len = 0;
+    response_entity.ext_payload_len = message_len;
   } else if (message_len <= 65535) {
     response_entity.payload_len     = 126;
     response_entity.ext_payload_len = message_len;
@@ -213,16 +214,21 @@ static bool handle_req_message(int32_t client_sock, const NostrReqMessage* req)
 
       NostrDBError err = nostr_db_query_execute(g_db, &db_filter, &result);
       if (err == NOSTR_DB_OK && result.count > 0) {
-        // Send matching events
-        for (uint32_t i = 0; i < result.count; i++) {
-          NostrEventEntity event;
-          if (nostr_db_get_event_at_offset(g_db, result.offsets[i], &event) == NOSTR_DB_OK) {
-            // Generate and send EVENT response
-            if (nostr_response_event(req->subscription_id, &event, g_response_buffer, RESPONSE_BUFFER_SIZE)) {
-              size_t len = strlen(g_response_buffer);
-              send_websocket_message(client_sock, g_response_buffer, len);
+        // Allocate event on heap to avoid stack overflow
+        NostrEventEntity* event = (NostrEventEntity*)internal_mmap(
+          NULL, sizeof(NostrEventEntity), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        if (event != MAP_FAILED) {
+          // Send matching events
+          for (uint32_t i = 0; i < result.count; i++) {
+            if (nostr_db_get_event_at_offset(g_db, result.offsets[i], event) == NOSTR_DB_OK) {
+              // Generate and send EVENT response
+              if (nostr_response_event(req->subscription_id, event, g_response_buffer, RESPONSE_BUFFER_SIZE)) {
+                size_t len = strlen(g_response_buffer);
+                send_websocket_message(client_sock, g_response_buffer, len);
+              }
             }
           }
+          internal_munmap(event, sizeof(NostrEventEntity));
         }
       }
 
@@ -393,7 +399,10 @@ bool websocket_handshake_callback(
 int main()
 {
   // Initialize subscription manager
-  nostr_subscription_manager_init(&g_subscription_manager);
+  if (!nostr_subscription_manager_init(&g_subscription_manager)) {
+    log_error("[Subscription] Failed to initialize subscription manager\n");
+    return 1;
+  }
 
   // Initialize database
   NostrDBError db_err = nostr_db_init(&g_db, "./data");
@@ -443,6 +452,8 @@ int main()
     nostr_db_shutdown(g_db);
     g_db = NULL;
   }
+
+  nostr_subscription_manager_destroy(&g_subscription_manager);
 
   log_info("[Server] Nostr relay stopped\n");
   return 0;

@@ -25,19 +25,68 @@ bool extract_nostr_event_created_at(
     return false;
   }
 
-  if (len > 20) {  // Max 20 digits for int64/time_t
+  if (len > 24) {  // Allow room for sign, digits, 'e', '+', exponent
     log_debug("Nostr Event Error: created_at length invalid\n");
     return false;
   }
 
+  size_t pos      = 0;
+  bool   negative = false;
+
+  // Handle negative sign
+  char first = json[token->start + pos];
+  if (first == '-') {
+    negative = true;
+    pos++;
+  }
+
+  // Parse mantissa digits
   time_t value = 0;
-  for (size_t i = 0; i < len; i++) {
-    char c = json[token->start + i];
-    if (!is_digit(c)) {
-      log_debug("Nostr Event Error: created_at contains non-digit\n");
-      return false;
+  while (pos < len && is_digit(json[token->start + pos])) {
+    value = value * 10 + (time_t)(json[token->start + pos] - '0');
+    pos++;
+  }
+
+  // Handle scientific notation (e.g., 1e+10)
+  if (pos < len && (json[token->start + pos] == 'e' || json[token->start + pos] == 'E')) {
+    pos++;  // skip 'e'/'E'
+
+    bool exp_negative = false;
+    if (pos < len && json[token->start + pos] == '+') {
+      pos++;
+    } else if (pos < len && json[token->start + pos] == '-') {
+      exp_negative = true;
+      pos++;
     }
-    value = value * 10 + (time_t)(c - '0');
+
+    int32_t exponent = 0;
+    while (pos < len && is_digit(json[token->start + pos])) {
+      exponent = exponent * 10 + (int32_t)(json[token->start + pos] - '0');
+      pos++;
+    }
+
+    // Apply exponent
+    if (exp_negative) {
+      for (int32_t i = 0; i < exponent; i++) {
+        value /= 10;
+      }
+    } else {
+      for (int32_t i = 0; i < exponent; i++) {
+        value *= 10;
+      }
+    }
+  }
+
+  // Handle decimal point (truncate fractional part for integer timestamp)
+  if (pos < len && json[token->start + pos] == '.') {
+    pos++;  // skip '.'
+    while (pos < len && is_digit(json[token->start + pos])) {
+      pos++;  // skip fractional digits
+    }
+  }
+
+  if (negative) {
+    value = -value;
   }
 
   *created_at = value;

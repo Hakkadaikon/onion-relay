@@ -1,19 +1,50 @@
 #include "nostr_subscription.h"
 
 #include "../../arch/memory.h"
+#include "../../arch/mmap.h"
 #include "../../util/log.h"
 #include "../../util/string.h"
 #include "nostr_filter.h"
 
 // ============================================================================
-// Initialize subscription manager
+// Initialize subscription manager (allocates subscriptions via mmap)
 // ============================================================================
-void nostr_subscription_manager_init(NostrSubscriptionManager* manager)
+bool nostr_subscription_manager_init(NostrSubscriptionManager* manager)
+{
+  if (manager == NULL) {
+    return false;
+  }
+
+  size_t alloc_size = sizeof(NostrSubscription) * NOSTR_SUBSCRIPTION_MAX_COUNT;
+  void*  ptr        = internal_mmap(NULL, alloc_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  if (ptr == MAP_FAILED) {
+    log_error("Failed to allocate subscription manager\n");
+    manager->subscriptions = NULL;
+    manager->count         = 0;
+    return false;
+  }
+
+  manager->subscriptions = (NostrSubscription*)ptr;
+  manager->count         = 0;
+  return true;
+}
+
+// ============================================================================
+// Destroy subscription manager (frees subscriptions via munmap)
+// ============================================================================
+void nostr_subscription_manager_destroy(NostrSubscriptionManager* manager)
 {
   if (manager == NULL) {
     return;
   }
-  internal_memset(manager, 0, sizeof(NostrSubscriptionManager));
+
+  if (manager->subscriptions != NULL) {
+    size_t alloc_size = sizeof(NostrSubscription) * NOSTR_SUBSCRIPTION_MAX_COUNT;
+    internal_munmap(manager->subscriptions, alloc_size);
+    manager->subscriptions = NULL;
+  }
+
+  manager->count = 0;
 }
 
 // ============================================================================

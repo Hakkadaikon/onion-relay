@@ -121,8 +121,8 @@ typedef struct {
 } NostrSubscription;
 
 typedef struct {
-  NostrSubscription subscriptions[NOSTR_SUBSCRIPTION_MAX_COUNT];
-  size_t            count;
+  NostrSubscription* subscriptions;
+  size_t             count;
 } NostrSubscriptionManager;
 
 // JSON function pointers
@@ -168,7 +168,8 @@ bool nostr_close_parse(const JsonFuncs* funcs, const char* json, const jsmntok_t
 void nostr_close_clear(NostrCloseMessage* close_msg);
 
 // Subscription functions
-void nostr_subscription_manager_init(NostrSubscriptionManager* manager);
+bool nostr_subscription_manager_init(NostrSubscriptionManager* manager);
+void nostr_subscription_manager_destroy(NostrSubscriptionManager* manager);
 NostrSubscription* nostr_subscription_add(NostrSubscriptionManager* manager, int32_t client_fd, const NostrReqMessage* req);
 bool nostr_subscription_remove(NostrSubscriptionManager* manager, int32_t client_fd, const char* subscription_id);
 size_t nostr_subscription_remove_client(NostrSubscriptionManager* manager, int32_t client_fd);
@@ -185,6 +186,11 @@ protected:
     memset(&req, 0, sizeof(req));
     memset(&close_msg, 0, sizeof(close_msg));
     memset(&event, 0, sizeof(event));
+    memset(&manager, 0, sizeof(manager));
+  }
+
+  void TearDown() override {
+    nostr_subscription_manager_destroy(&manager);
     memset(&manager, 0, sizeof(manager));
   }
 

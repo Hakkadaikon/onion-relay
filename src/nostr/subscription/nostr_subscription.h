@@ -26,14 +26,19 @@ typedef struct {
 // Subscription manager
 // ============================================================================
 typedef struct {
-  NostrSubscription subscriptions[NOSTR_SUBSCRIPTION_MAX_COUNT];
-  size_t            count;
+  NostrSubscription* subscriptions;
+  size_t             count;
 } NostrSubscriptionManager, *PNostrSubscriptionManager;
 
 // ============================================================================
-// Initialize subscription manager
+// Initialize subscription manager (allocates subscriptions via mmap)
 // ============================================================================
-void nostr_subscription_manager_init(NostrSubscriptionManager* manager);
+bool nostr_subscription_manager_init(NostrSubscriptionManager* manager);
+
+// ============================================================================
+// Destroy subscription manager (frees subscriptions via munmap)
+// ============================================================================
+void nostr_subscription_manager_destroy(NostrSubscriptionManager* manager);
 
 // ============================================================================
 // Add a new subscription

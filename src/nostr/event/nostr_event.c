@@ -11,6 +11,36 @@ extern bool extract_nostr_event_sig(const PJsonFuncs funcs, const char* json, co
 extern bool extract_nostr_event_tags(const PJsonFuncs funcs, const char* json, const jsontok_t* token, NostrTagEntity* tags, uint32_t* tag_count);
 extern bool extract_nostr_event_content(const PJsonFuncs funcs, const char* json, const jsontok_t* token, char* content, size_t content_capacity);
 
+// Count total tokens for a JSMN token subtree (including the token itself)
+static int count_value_tokens(const jsontok_t* token, int remaining)
+{
+  if (remaining <= 0) {
+    return 0;
+  }
+
+  if (token->type == JSMN_PRIMITIVE || token->type == JSMN_STRING) {
+    return 1;
+  }
+
+  int count    = 1;  // The container token itself
+  int children = token->size;
+
+  if (token->type == JSMN_OBJECT) {
+    // Object: each child is a key-value pair
+    for (int i = 0; i < children && count < remaining; i++) {
+      count++;  // key token
+      count += count_value_tokens(&token[count], remaining - count);
+    }
+  } else if (token->type == JSMN_ARRAY) {
+    // Array: each child is a value
+    for (int i = 0; i < children && count < remaining; i++) {
+      count += count_value_tokens(&token[count], remaining - count);
+    }
+  }
+
+  return count;
+}
+
 bool extract_nostr_event(
   const PJsonFuncs  funcs,
   const char*       json,
@@ -30,9 +60,17 @@ bool extract_nostr_event(
 
   websocket_memset(&found, 0x00, sizeof(found));
 
-  for (int i = 0; i < token_count; i += 2) {
+  for (int i = 0; i < token_count;) {
     int key_index   = i;
     int value_index = i + 1;
+
+    if (value_index >= (int)token_count) {
+      break;
+    }
+
+    // Compute token count for value subtree and advance i past key + value
+    int value_tokens = count_value_tokens(&token[value_index], (int)token_count - value_index);
+    i += 1 + value_tokens;
 
     if (!funcs->is_string(&token[key_index])) {
       log_debug("JSON error: key is not string\n");

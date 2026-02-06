@@ -254,7 +254,7 @@ bool nostr_filter_matches(
 
   // Check ids filter (prefix match supported)
   if (filter->ids_count > 0) {
-    bool    found = false;
+    bool    found            = false;
     uint8_t event_id_bin[32] = {0};
     size_t  converted        = hex_to_bytes(event->id, 64, event_id_bin, 32);
 
@@ -275,7 +275,7 @@ bool nostr_filter_matches(
 
   // Check authors filter (prefix match supported)
   if (filter->authors_count > 0) {
-    bool    found = false;
+    bool    found                = false;
     uint8_t event_pubkey_bin[32] = {0};
     size_t  converted            = hex_to_bytes(event->pubkey, 64, event_pubkey_bin, 32);
 

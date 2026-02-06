@@ -1,5 +1,6 @@
 #include "nostr_func.h"
 
+#include "../arch/mmap.h"
 #include "../util/allocator.h"
 #include "../util/log.h"
 #include "../util/string.h"
@@ -31,7 +32,7 @@ bool nostr_event_handler(const char* json, PNostrFuncs nostr_funcs)
     token,
     JSON_TOKEN_CAPACITY);
 
-  if (token_count < 5) {
+  if (token_count < 3) {
     log_debug("JSON error: Parse error\n");
     var_debug("token_count:", token_count);
     return false;
@@ -47,40 +48,57 @@ bool nostr_event_handler(const char* json, PNostrFuncs nostr_funcs)
     return false;
   }
 
-  if (!json_funcs.strncmp(json, &token[1], "EVENT", 5)) {
+  if (json_funcs.strncmp(json, &token[1], "EVENT", 5)) {
     if (!json_funcs.is_object(&token[2])) {
       log_debug("JSON error: Invalid EVENT format\n");
       return false;
     }
 
-    NostrEventEntity event;
+    NostrEventEntity* event = (NostrEventEntity*)internal_mmap(
+      NULL, sizeof(NostrEventEntity), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (event == MAP_FAILED) {
+      log_debug("Nostr Event Error: Failed to allocate event\n");
+      return false;
+    }
 
     if (!extract_nostr_event(
           &json_funcs,
           json,
           &token[3],
           token_count - 3,
-          &event)) {
+          event)) {
+      internal_munmap(event, sizeof(NostrEventEntity));
       log_debug("Nostr Event Error: Invalid Nostr JSON format\n");
       return false;
     }
 
     log_debug("Nostr funcs\n");
-    return nostr_funcs->event(&event);
+    bool result = nostr_funcs->event(event);
+    internal_munmap(event, sizeof(NostrEventEntity));
+    return result;
   }
 
   if (json_funcs.strncmp(json, &token[1], "REQ", 3)) {
     // Parse REQ message
-    NostrReqMessage req;
-    if (!nostr_req_parse(&json_funcs, json, token, token_count, &req)) {
+    NostrReqMessage* req = (NostrReqMessage*)internal_mmap(
+      NULL, sizeof(NostrReqMessage), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (req == MAP_FAILED) {
+      log_debug("Nostr REQ Error: Failed to allocate req\n");
+      return false;
+    }
+
+    if (!nostr_req_parse(&json_funcs, json, token, token_count, req)) {
+      internal_munmap(req, sizeof(NostrReqMessage));
       log_debug("Nostr REQ Error: Invalid REQ format\n");
       return false;
     }
 
+    bool result = true;
     if (nostr_funcs->req != NULL) {
-      return nostr_funcs->req(&req);
+      result = nostr_funcs->req(req);
     }
-    return true;
+    internal_munmap(req, sizeof(NostrReqMessage));
+    return result;
   }
 
   if (json_funcs.strncmp(json, &token[1], "CLOSE", 5)) {
