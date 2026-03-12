@@ -20,7 +20,7 @@
 
 ## 新アーキテクチャ概要
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │                    Public API (db.h)                     │
 │  nostr_db_init / write_event / query / delete / shutdown │
@@ -52,9 +52,9 @@
 ### データ指向設計 (DOD) の原則
 
 1. **Structure of Arrays (SoA)**: ホットデータとコールドデータを分離。B+ツリーノード内はキー配列と子ポインタ配列を連続配置
-2. **キャッシュライン最適化**: ページサイズ4096B、ノードサイズ=ページサイズ。リーフノード内のキーは連続メモリ領域に配置してプリフェッチ効率を最大化
-3. **ゼロコピー参照**: バッファプール上のページをピン留めして直接参照。不要なmemcpyを排除
-4. **バッチ処理指向**: 複数インデックス更新をWALに一括記録し、ディスクI/Oを最小化
+1. **キャッシュライン最適化**: ページサイズ4096B、ノードサイズ=ページサイズ。リーフノード内のキーは連続メモリ領域に配置してプリフェッチ効率を最大化
+1. **ゼロコピー参照**: バッファプール上のページをピン留めして直接参照。不要なmemcpyを排除
+1. **バッチ処理指向**: 複数インデックス更新をWALに一括記録し、ディスクI/Oを最小化
 
 ---
 
@@ -135,26 +135,28 @@ typedef struct {
 ```
 
 **割り当てアルゴリズム**:
+
 1. `header.free_list_head != 0` → フリーリストの先頭ページを返し、先頭を次に繋ぎ替え
-2. フリーリスト空 → `disk_extend()` でファイルを拡張し新規ページを返す
+1. フリーリスト空 → `disk_extend()` でファイルを拡張し新規ページを返す
 
 **解放アルゴリズム**:
+
 1. 解放ページの先頭に現在の `free_list_head` を書き込み
-2. `free_list_head` を解放ページIDに更新
+1. `free_list_head` を解放ページIDに更新
 
 ### TODO Phase 1
 
 - [x] **1-1**: `disk/disk_types.h` — `page_id_t`, `PageData`, `FileHeader`, `FreePageEntry` 型定義
 - [x] **1-2**: `disk/disk_manager.h` — `DiskManager` 構造体、API宣言
 - [x] **1-3**: `disk/disk_manager.c` — `disk_manager_open`, `disk_manager_create`, `disk_manager_close` 実装
-  - `internal_open()` で `O_RDWR | O_DSYNC` フラグ使用
-  - 新規作成時は `internal_ftruncate()` で初期サイズ確保、ヘッダページ書き込み
+    - `internal_open()` で `O_RDWR | O_DSYNC` フラグ使用
+    - 新規作成時は `internal_ftruncate()` で初期サイズ確保、ヘッダページ書き込み
 - [x] **1-4**: `disk/disk_io.c` — `disk_read_page`, `disk_write_page`, `disk_sync` 実装
-  - `internal_pread()` / `internal_pwrite()` でオフセット = `page_id * DB_PAGE_SIZE`
-  - アライメントチェック (`PageData` は `__attribute__((aligned))`)
+    - `internal_pread()` / `internal_pwrite()` でオフセット = `page_id * DB_PAGE_SIZE`
+    - アライメントチェック (`PageData` は `__attribute__((aligned))`)
 - [x] **1-5**: `disk/disk_alloc.c` — `disk_alloc_page`, `disk_free_page`, `disk_extend` 実装
-  - フリーリストチェーン操作
-  - 拡張時は128ページ単位 (512KB) でバッチ拡張
+    - フリーリストチェーン操作
+    - 拡張時は128ページ単位 (512KB) でバッチ拡張
 - [x] **1-6**: `tests/disk-test.cpp` — ページ読み書き、割り当て・解放・拡張テスト
 
 ---
@@ -196,6 +198,7 @@ typedef struct {
 ```
 
 **データ指向ポイント**:
+
 - `page_ids`, `pin_counts`, `dirty_flags`, `ref_bits` は別々の配列 (SoA)。Clock置換時にはこれらの小さい配列のみをシーケンシャルスキャンするため、キャッシュライン利用効率が最大化される
 - `pages` (各4KB) とメタデータが混在しないためプリフェッチが効く
 
@@ -203,15 +206,16 @@ typedef struct {
 
 LRUに近い性能を低オーバーヘッドで実現。
 
-```
+```text
 clock_hand → [frame0] → [frame1] → ... → [frameN-1] → [frame0] ...
 
 置換フロー:
+
 1. clock_handの位置から巡回開始
-2. pin_count > 0 → スキップ (使用中)
-3. ref_bit == 1 → ref_bit = 0 にして次へ (セカンドチャンス)
-4. ref_bit == 0 → このフレームを犠牲者として選択
-5. dirty_flag == 1 → ディスクに書き戻してからフレームを再利用
+1. pin_count > 0 → スキップ (使用中)
+1. ref_bit == 1 → ref_bit = 0 にして次へ (セカンドチャンス)
+1. ref_bit == 0 → このフレームを犠牲者として選択
+1. dirty_flag == 1 → ディスクに書き戻してからフレームを再利用
 ```
 
 ### 2.3 API
@@ -245,15 +249,15 @@ NostrDBError buffer_pool_flush_all(BufferPool* pool);
 - [x] **2-1**: `buffer/buffer_types.h` — バッファプール型定義 (SoA構造)
 - [x] **2-2**: `buffer/buffer_pool.h` — API宣言
 - [x] **2-3**: `buffer/buffer_pool.c` — `buffer_pool_init` / `buffer_pool_shutdown`
-  - `internal_mmap(MAP_PRIVATE | MAP_ANONYMOUS)` で SoA 各配列を一括確保
-  - ハッシュテーブルサイズ = pool_size * 2 (素数に丸め)
+    - `internal_mmap(MAP_PRIVATE | MAP_ANONYMOUS)` で SoA 各配列を一括確保
+    - ハッシュテーブルサイズ = pool_size * 2 (素数に丸め)
 - [x] **2-4**: `buffer/buffer_pool.c` — `buffer_pool_pin` 実装
-  - ハッシュテーブルでフレーム検索 → ヒットならpin_count++、ref_bit=1
-  - ミスならClock置換で犠牲フレーム選択 → ディスクから読み込み
+    - ハッシュテーブルでフレーム検索 → ヒットならpin_count++、ref_bit=1
+    - ミスならClock置換で犠牲フレーム選択 → ディスクから読み込み
 - [x] **2-5**: `buffer/buffer_pool.c` — `buffer_pool_alloc_page` 実装
-  - `disk_alloc_page()` → 新規ページIDを取得 → フレームに配置
+    - `disk_alloc_page()` → 新規ページIDを取得 → フレームに配置
 - [x] **2-6**: `buffer/buffer_pool.c` — `buffer_pool_unpin`, `buffer_pool_mark_dirty`, `buffer_pool_flush` 実装
-  - WALプロトコル: フラッシュ前に `lsn <= wal_flushed_lsn` を確認
+    - WALプロトコル: フラッシュ前に `lsn <= wal_flushed_lsn` を確認
 - [x] **2-7**: `tests/buffer-test.cpp` — ピン・アンピン・置換・フラッシュのテスト
 
 ---
@@ -321,27 +325,29 @@ typedef struct {
 ### 3.2 WALプロトコル
 
 1. **WAL原則**: バッファプールがダーティページをフラッシュする前に、そのページのLSN以下の全WALレコードがディスクに書き込まれていることを保証
-2. **コミット順序**: COMMITレコードがディスクにフラッシュされて初めてトランザクション完了
-3. **グループコミット**: 複数トランザクションのCOMMITを1回のfsyncでまとめて永続化
+1. **コミット順序**: COMMITレコードがディスクにフラッシュされて初めてトランザクション完了
+1. **グループコミット**: 複数トランザクションのCOMMITを1回のfsyncでまとめて永続化
 
 ### 3.3 リカバリアルゴリズム
 
-```
+```text
 起動時リカバリ:
+
 1. WALファイルを先頭から読み込み
-2. 最終チェックポイントレコードを特定
-3. Analysis Phase: チェックポイント以降のレコードから
-   - アクティブトランザクションリスト構築
-   - ダーティページリスト構築
-4. Redo Phase: チェックポイント以降の全UPDATEレコードを再適用
-   - ページLSN < レコードLSN のページのみ再適用
-5. Undo Phase: コミットされていないトランザクションのUPDATEを逆順にロールバック
-6. WALファイルをトランケート (チェックポイント以前を削除)
+1. 最終チェックポイントレコードを特定
+1. Analysis Phase: チェックポイント以降のレコードから
+    -  アクティブトランザクションリスト構築
+    -  ダーティページリスト構築
+1. Redo Phase: チェックポイント以降の全UPDATEレコードを再適用
+    -  ページLSN < レコードLSN のページのみ再適用
+1. Undo Phase: コミットされていないトランザクションのUPDATEを逆順にロールバック
+1. WALファイルをトランケート (チェックポイント以前を削除)
 ```
 
 ### 3.4 シングルスレッド簡略化
 
 libelayはシングルスレッド (epollイベントループ) であるため:
+
 - ロックマネージャは不要
 - MVCC は不要
 - トランザクション並行制御は不要
@@ -352,20 +358,20 @@ libelayはシングルスレッド (epollイベントループ) であるため:
 - [x] **3-1**: `wal/wal_types.h` — LSN型、レコード種別、レコードヘッダ、ペイロード型定義
 - [x] **3-2**: `wal/wal_manager.h` — `WalManager` 構造体、API宣言
 - [x] **3-3**: `wal/wal_manager.c` — `wal_init`, `wal_shutdown` 実装
-  - WALファイル (`data/wal.log`) のオープン・作成
-  - WALバッファ確保 (`internal_mmap` で64KB匿名マップ)
+    - WALファイル (`data/wal.log`) のオープン・作成
+    - WALバッファ確保 (`internal_mmap` で64KB匿名マップ)
 - [x] **3-4**: `wal/wal_write.c` — WALレコード書き込み
-  - `wal_log_begin(tx_id)` → BEGINレコード追記
-  - `wal_log_update(tx_id, page_id, offset, length, old_data, new_data)` → UPDATEレコード追記
-  - `wal_log_commit(tx_id)` → COMMITレコード追記 + バッファフラッシュ
-  - `wal_log_abort(tx_id)` → ABORTレコード追記
+    - `wal_log_begin(tx_id)` → BEGINレコード追記
+    - `wal_log_update(tx_id, page_id, offset, length, old_data, new_data)` → UPDATEレコード追記
+    - `wal_log_commit(tx_id)` → COMMITレコード追記 + バッファフラッシュ
+    - `wal_log_abort(tx_id)` → ABORTレコード追記
 - [x] **3-5**: `wal/wal_flush.c` — WALバッファのディスクフラッシュ
-  - `wal_flush()` → バッファ内容をpwrite + fsync、`flushed_lsn` 更新
+    - `wal_flush()` → バッファ内容をpwrite + fsync、`flushed_lsn` 更新
 - [x] **3-6**: `wal/wal_recovery.c` — 起動時リカバリ実装
-  - `wal_recover(WalManager*, DiskManager*)` → Redo/Undoフェーズ実行
+    - `wal_recover(WalManager*, DiskManager*)` → Redo/Undoフェーズ実行
 - [x] **3-7**: `wal/wal_checkpoint.c` — チェックポイント
-  - `wal_checkpoint(WalManager*, BufferPool*)` → ダーティページフラッシュ + CHECKPOINTレコード
-  - 一定イベント数ごとに非静止チェックポイントを実行
+    - `wal_checkpoint(WalManager*, BufferPool*)` → ダーティページフラッシュ + CHECKPOINTレコード
+    - 一定イベント数ごとに非静止チェックポイントを実行
 - [x] **3-8**: `tests/wal-test.cpp` — WALレコード書き込み・読み込み・リカバリテスト
 
 ---
@@ -441,7 +447,7 @@ typedef struct {
 
 大きなイベント (content + tags > ~4000バイト) は複数ページにまたがる。
 
-```
+```text
 [Primary Page]
   SlotEntry → { offset, length=SPANNED_MARKER }
   レコード先頭部分 + overflow_page_id
@@ -463,21 +469,21 @@ typedef struct {
 - [x] **4-1**: `record/record_types.h` — `RecordId`, `PageType`, `SlotPageHeader`, `SlotEntry`, `EventRecord` 型定義
 - [x] **4-2**: `record/slot_page.h` — スロットページ操作API宣言
 - [x] **4-3**: `record/slot_page.c` — スロットページ操作実装
-  - `slot_page_init(PageData*, page_id_t)` — ページ初期化
-  - `slot_page_insert(PageData*, const void* data, uint16_t length, uint16_t* slot_index)` — レコード挿入
-  - `slot_page_read(const PageData*, uint16_t slot_index, void* out, uint16_t* length)` — レコード読み出し
-  - `slot_page_delete(PageData*, uint16_t slot_index)` — レコード削除 (スロットをマーク)
-  - `slot_page_free_space(const PageData*)` — 利用可能空き容量
-  - `slot_page_compact(PageData*)` — フラグメンテーション解消
+    - `slot_page_init(PageData*, page_id_t)` — ページ初期化
+    - `slot_page_insert(PageData*, const void* data, uint16_t length, uint16_t* slot_index)` — レコード挿入
+    - `slot_page_read(const PageData*, uint16_t slot_index, void* out, uint16_t* length)` — レコード読み出し
+    - `slot_page_delete(PageData*, uint16_t slot_index)` — レコード削除 (スロットをマーク)
+    - `slot_page_free_space(const PageData*)` — 利用可能空き容量
+    - `slot_page_compact(PageData*)` — フラグメンテーション解消
 - [x] **4-4**: `record/record_manager.h` / `record/record_manager.c` — レコードマネージャ
-  - `record_insert(BufferPool*, const void* data, uint16_t length, RecordId* out_rid)` — レコード挿入 (空きページ検索含む)
-  - `record_read(BufferPool*, RecordId rid, void* out, uint16_t* length)` — レコード読み出し
-  - `record_delete(BufferPool*, RecordId rid)` — レコード削除
-  - `record_update(BufferPool*, RecordId rid, const void* data, uint16_t length)` — レコード更新 (サイズ変更はdelete+insert)
+    - `record_insert(BufferPool*, const void* data, uint16_t length, RecordId* out_rid)` — レコード挿入 (空きページ検索含む)
+    - `record_read(BufferPool*, RecordId rid, void* out, uint16_t* length)` — レコード読み出し
+    - `record_delete(BufferPool*, RecordId rid)` — レコード削除
+    - `record_update(BufferPool*, RecordId rid, const void* data, uint16_t length)` — レコード更新 (サイズ変更はdelete+insert)
 - [x] **4-5**: `record/overflow.c` — スパンドレコード (オーバーフローページチェーン) 実装
 - [x] **4-6**: `record/event_serializer.c` — `NostrEventEntity` ↔ `EventRecord` 変換
-  - hex文字列 → バイナリ変換含む
-  - タグのバイナリシリアライゼーション (既存の `db_tags.c` を流用)
+    - hex文字列 → バイナリ変換含む
+    - タグのバイナリシリアライゼーション (既存の `db_tags.c` を流用)
 - [x] **4-7**: `tests/record-test.cpp` — スロットページ挿入・読み出し・削除・コンパクション・オーバーフローテスト
 
 ---
@@ -521,10 +527,11 @@ typedef struct {
 ```
 
 **データ指向ポイント**:
+
 - 内部ノード: キー配列と子ポインタ配列を分離配置。検索時はキー配列のみシーケンシャルアクセスでバイナリサーチ → キャッシュヒット率向上
 - リーフノード: `[keys...][values...]` のSoA配置。キーだけの検索時にvalueをキャッシュラインに載せない
 
-```
+```text
 内部ノードの物理レイアウト (SoA):
 [SlotPageHeader][BTreeNodeHeader][key_0][key_1]...[key_N-1]  |  [child_0][child_1]...[child_N]
                                  ←  キー配列 (連続)  →         ←  子ポインタ配列 (連続)  →
@@ -559,7 +566,7 @@ typedef enum {
 
 ### 5.3 ノード容量計算
 
-```
+```text
 ページ利用可能領域 = 4096 - sizeof(SlotPageHeader) - sizeof(BTreeNodeHeader)
                    = 4096 - 24 - 8 = 4064 bytes
 
@@ -583,7 +590,7 @@ Timeline (key=8B int64):
 
 #### 検索 (Search)
 
-```
+```text
 btree_search(root_page, key):
   node = read_page(root_page)
   while node.is_leaf == false:
@@ -597,7 +604,7 @@ btree_search(root_page, key):
 
 #### 範囲スキャン (Range Scan)
 
-```
+```text
 btree_range_scan(root_page, min_key, max_key, callback):
   // min_keyを持つリーフを検索
   leaf = find_leaf(root_page, min_key)
@@ -610,7 +617,7 @@ btree_range_scan(root_page, min_key, max_key, callback):
 
 #### 挿入 (Insert) と分割 (Split)
 
-```
+```text
 btree_insert(root_page, key, value):
   (leaf, ancestors) = find_leaf_with_path(root_page, key)
 
@@ -693,40 +700,40 @@ NostrDBError btree_delete_dup(BTree* tree, const void* key, RecordId rid);
 - [x] **5-1**: `btree/btree_types.h` — `BTreeMeta`, `BTreeNodeHeader`, `BTreeKeyType`, キー比較関数型定義
 - [x] **5-2**: `btree/btree.h` — B+ツリーAPI宣言
 - [x] **5-3**: `btree/btree_node.c` — ノード操作ユーティリティ
-  - `btree_node_init_leaf(PageData*, page_id_t)` — リーフノード初期化
-  - `btree_node_init_inner(PageData*, page_id_t)` — 内部ノード初期化
-  - `btree_node_search_key(PageData*, const void* key, BTreeKeyCompare)` — ノード内バイナリサーチ
-  - `btree_node_insert_at(PageData*, uint16_t pos, const void* key, const void* value)` — 指定位置に挿入
-  - `btree_node_key_at(const PageData*, uint16_t pos)` — 指定位置のキーポインタ取得
-  - `btree_node_value_at(const PageData*, uint16_t pos)` — 指定位置の値ポインタ取得
-  - `btree_node_child_at(const PageData*, uint16_t pos)` — 内部ノードの子ポインタ取得
+    - `btree_node_init_leaf(PageData*, page_id_t)` — リーフノード初期化
+    - `btree_node_init_inner(PageData*, page_id_t)` — 内部ノード初期化
+    - `btree_node_search_key(PageData*, const void* key, BTreeKeyCompare)` — ノード内バイナリサーチ
+    - `btree_node_insert_at(PageData*, uint16_t pos, const void* key, const void* value)` — 指定位置に挿入
+    - `btree_node_key_at(const PageData*, uint16_t pos)` — 指定位置のキーポインタ取得
+    - `btree_node_value_at(const PageData*, uint16_t pos)` — 指定位置の値ポインタ取得
+    - `btree_node_child_at(const PageData*, uint16_t pos)` — 内部ノードの子ポインタ取得
 - [x] **5-4**: `btree/btree_search.c` — 検索 / 範囲スキャン実装
-  - `btree_search()` — ルートからリーフへの探索
-  - `btree_range_scan()` — リーフ間リンクを辿る範囲スキャン
-  - `btree_find_leaf()` — キーが所属するリーフノードを返す内部関数
+    - `btree_search()` — ルートからリーフへの探索
+    - `btree_range_scan()` — リーフ間リンクを辿る範囲スキャン
+    - `btree_find_leaf()` — キーが所属するリーフノードを返す内部関数
 - [x] **5-5**: `btree/btree_insert.c` — 挿入 / 分割実装
-  - `btree_insert()` — リーフへの挿入
-  - `btree_split_leaf()` — リーフ分割 (上位半分を新ノードに移動、右兄弟ポインタ繋ぎ替え)
-  - `btree_split_inner()` — 内部ノード分割 (中央キーを親へ押し上げ)
-  - `btree_grow_root()` — ルート分割時の新ルート作成
+    - `btree_insert()` — リーフへの挿入
+    - `btree_split_leaf()` — リーフ分割 (上位半分を新ノードに移動、右兄弟ポインタ繋ぎ替え)
+    - `btree_split_inner()` — 内部ノード分割 (中央キーを親へ押し上げ)
+    - `btree_grow_root()` — ルート分割時の新ルート作成
 - [x] **5-6**: `btree/btree_delete.c` — 削除実装
-  - `btree_delete()` — リーフからの削除
-  - マージ/再分配は当面スキップ (トゥームストーン方式、定期的なリビルドで対応)
+    - `btree_delete()` — リーフからの削除
+    - マージ/再分配は当面スキップ (トゥームストーン方式、定期的なリビルドで対応)
 - [x] **5-7**: `btree/btree_overflow.c` — 重複キー用オーバーフローチェーン
-  - `btree_insert_dup()` — オーバーフローページにRecordId追加
-  - `btree_scan_key()` — オーバーフローチェーンを辿って全RecordIdを返す
-  - `btree_delete_dup()` — オーバーフローチェーンからRecordId削除
+    - `btree_insert_dup()` — オーバーフローページにRecordId追加
+    - `btree_scan_key()` — オーバーフローチェーンを辿って全RecordIdを返す
+    - `btree_delete_dup()` — オーバーフローチェーンからRecordId削除
 - [x] **5-8**: `btree/btree_compare.c` — キー比較関数群
-  - `btree_compare_bytes32()` — 32バイトmemcmp
-  - `btree_compare_int64()` — int64 比較 (降順対応)
-  - `btree_compare_uint32()` — uint32 比較
-  - `btree_compare_composite_pk_kind()` — pubkey[32]+kind[4] 比較
-  - `btree_compare_composite_tag()` — tag_name[1]+tag_value[32] 比較
+    - `btree_compare_bytes32()` — 32バイトmemcmp
+    - `btree_compare_int64()` — int64 比較 (降順対応)
+    - `btree_compare_uint32()` — uint32 比較
+    - `btree_compare_composite_pk_kind()` — pubkey[32]+kind[4] 比較
+    - `btree_compare_composite_tag()` — tag_name[1]+tag_value[32] 比較
 - [x] **5-9**: `tests/btree-test.cpp` — B+ツリーの基本操作テスト
-  - 挿入 (順次・逆順・ランダム)、検索、削除
-  - 分割の発生確認 (大量挿入)
-  - 範囲スキャン
-  - 重複キーのオーバーフローチェーン
+    - 挿入 (順次・逆順・ランダム)、検索、削除
+    - 分割の発生確認 (大量挿入)
+    - 範囲スキャン
+    - 重複キーのオーバーフローチェーン
 
 ---
 
@@ -750,10 +757,12 @@ NostrDBError btree_delete_dup(BTree* tree, const void* key, RecordId rid);
 IDインデックスは完全一致のみで範囲検索不要なため、2つの選択肢がある:
 
 **オプションA: B+ツリー** (統一性優先)
+
 - 他のインデックスと同じコードパスで実装可能
 - プレフィックスマッチ (Nostr仕様) にも対応可能
 
 **オプションB: 拡張ハッシュ法** (性能優先)
+
 - O(1)ルックアップ、B+ツリーの3ページアクセスに対し1-2ページアクセス
 - IDはSHA-256ハッシュでありキー分布が均一
 
@@ -796,28 +805,28 @@ NostrDBError index_manager_delete_event(IndexManager* im, RecordId rid, const Ev
 
 - [x] **6-1**: `index/index_manager.h` — `IndexManager` 構造体、API宣言
 - [x] **6-2**: `index/index_id.c` — IDインデックス (B+ツリーラッパー)
-  - `index_id_insert(BTree*, const uint8_t id[32], RecordId)` — ユニーク挿入
-  - `index_id_lookup(BTree*, const uint8_t id[32], RecordId*)` — 完全一致検索
-  - `index_id_prefix_scan(BTree*, const uint8_t* prefix, size_t len, callback)` — プレフィックスマッチ
-  - `index_id_delete(BTree*, const uint8_t id[32])` — 削除
+    - `index_id_insert(BTree*, const uint8_t id[32], RecordId)` — ユニーク挿入
+    - `index_id_lookup(BTree*, const uint8_t id[32], RecordId*)` — 完全一致検索
+    - `index_id_prefix_scan(BTree*, const uint8_t* prefix, size_t len, callback)` — プレフィックスマッチ
+    - `index_id_delete(BTree*, const uint8_t id[32])` — 削除
 - [x] **6-3**: `index/index_timeline.c` — タイムラインインデックス
-  - キーエンコード/デコード関数
-  - `index_timeline_insert(BTree*, int64_t created_at, RecordId)`
-  - `index_timeline_range(BTree*, int64_t since, int64_t until, uint32_t limit, callback)` — 範囲スキャン (降順)
+    - キーエンコード/デコード関数
+    - `index_timeline_insert(BTree*, int64_t created_at, RecordId)`
+    - `index_timeline_range(BTree*, int64_t since, int64_t until, uint32_t limit, callback)` — 範囲スキャン (降順)
 - [x] **6-4**: `index/index_pubkey.c` — Pubkeyインデックス
-  - `index_pubkey_insert(BTree*, const uint8_t pubkey[32], RecordId)`
-  - `index_pubkey_scan(BTree*, const uint8_t pubkey[32], since, until, limit, callback)` — 特定pubkeyの全イベント
+    - `index_pubkey_insert(BTree*, const uint8_t pubkey[32], RecordId)`
+    - `index_pubkey_scan(BTree*, const uint8_t pubkey[32], since, until, limit, callback)` — 特定pubkeyの全イベント
 - [x] **6-5**: `index/index_kind.c` — Kindインデックス
-  - `index_kind_insert(BTree*, uint32_t kind, RecordId)`
-  - `index_kind_scan(BTree*, uint32_t kind, since, until, limit, callback)`
+    - `index_kind_insert(BTree*, uint32_t kind, RecordId)`
+    - `index_kind_scan(BTree*, uint32_t kind, since, until, limit, callback)`
 - [x] **6-6**: `index/index_pubkey_kind.c` — Pubkey+Kind複合インデックス
-  - 複合キー構築 (`pubkey[32] || kind[4]`)
-  - `index_pk_kind_insert(BTree*, const uint8_t pubkey[32], uint32_t kind, RecordId)`
-  - `index_pk_kind_scan(BTree*, const uint8_t pubkey[32], uint32_t kind, since, until, limit, callback)`
+    - 複合キー構築 (`pubkey[32] || kind[4]`)
+    - `index_pk_kind_insert(BTree*, const uint8_t pubkey[32], uint32_t kind, RecordId)`
+    - `index_pk_kind_scan(BTree*, const uint8_t pubkey[32], uint32_t kind, since, until, limit, callback)`
 - [x] **6-7**: `index/index_tag.c` — Tagインデックス
-  - 複合キー構築 (`tag_name[1] || tag_value[32]`)
-  - `index_tag_insert(BTree*, uint8_t name, const uint8_t value[32], RecordId)`
-  - `index_tag_scan(BTree*, uint8_t name, const uint8_t value[32], since, until, limit, callback)`
+    - 複合キー構築 (`tag_name[1] || tag_value[32]`)
+    - `index_tag_insert(BTree*, uint8_t name, const uint8_t value[32], RecordId)`
+    - `index_tag_scan(BTree*, uint8_t name, const uint8_t value[32], since, until, limit, callback)`
 - [x] **6-8**: `index/index_manager.c` — IndexManager初期化 / イベント挿入・削除時の全インデックス一括更新
 - [x] **6-9**: `tests/index-test.cpp` — 各インデックスの単体テスト + 統合テスト
 
@@ -829,7 +838,7 @@ NostrDBError index_manager_delete_event(IndexManager* im, RecordId rid, const Ev
 
 ### 7.1 クエリ戦略 (現行維持)
 
-```
+```text
 優先度1: BY_ID        — idsフィルタ指定時 → IDインデックスで直接ルックアップ
 優先度2: BY_TAG       — tagsフィルタ指定時 → Tagインデックスで範囲スキャン
 優先度3: BY_PK_KIND   — authors+kinds指定時 → Pubkey+Kindインデックス
@@ -859,16 +868,16 @@ typedef struct {
 
 - [x] **7-1**: `query/db_query_types.h` — `NostrDBFilter` は現行維持 (互換性)
 - [x] **7-2**: `query/query_result_v2.c` — `QueryResultSet` をRecordIdベースに更新
-  - ブルームフィルタによるO(1)近似重複チェック追加
+    - ブルームフィルタによるO(1)近似重複チェック追加
 - [x] **7-3**: `query/query_engine.c` — 各クエリ戦略をB+ツリーAPIに接続
-  - `query_by_ids()` → `index_id_lookup()` に置き換え
-  - `query_by_pubkey()` → `btree_scan_key(pubkey_index)` に置き換え
-  - `query_by_kind()` → `btree_scan_key(kind_index)` に置き換え
-  - `query_by_pubkey_kind()` → `btree_scan_key(pubkey_kind_index)` に置き換え
-  - `query_by_tag()` → `btree_scan_key(tag_index)` に置き換え
-  - `query_timeline_scan()` → `btree_range_scan(timeline_index)` に置き換え
+    - `query_by_ids()` → `index_id_lookup()` に置き換え
+    - `query_by_pubkey()` → `btree_scan_key(pubkey_index)` に置き換え
+    - `query_by_kind()` → `btree_scan_key(kind_index)` に置き換え
+    - `query_by_pubkey_kind()` → `btree_scan_key(pubkey_kind_index)` に置き換え
+    - `query_by_tag()` → `btree_scan_key(tag_index)` に置き換え
+    - `query_timeline_scan()` → `btree_range_scan(timeline_index)` に置き換え
 - [x] **7-4**: `query/query_engine.c` — `query_post_filter()` のタグポストフィルタ実装
-  - レコード読み出し → フィルタマッチング (ID, authors, kinds, time range)
+    - レコード読み出し → フィルタマッチング (ID, authors, kinds, time range)
 - [x] **7-5**: `tests/query_engine_test.cpp` — 全クエリ戦略の統合テスト (14テスト)
 
 ---
@@ -915,7 +924,7 @@ NostrDBError nostr_db_get_stats(NostrDB* db, NostrDBStats* stats);
 
 ### 8.3 書き込みフロー (改善後)
 
-```
+```text
 nostr_db_write_event(db, event):
   1. WAL: BEGIN
   2. event → EventRecord にシリアライズ
@@ -929,13 +938,14 @@ nostr_db_write_event(db, event):
 
 ### 8.4 データファイル構成 (変更後)
 
-```
+```text
 data/
 ├── nostr.db          # 単一データファイル (全ページをこの中に格納)
 └── wal.log           # WALファイル
 ```
 
 単一ファイルに統合することで:
+
 - ファイルディスクリプタ消費を1本に削減 (現行7本)
 - ページ割り当てを統一管理
 - ファイルヘッダのページ0にインデックスルートページIDを格納
@@ -977,26 +987,26 @@ typedef struct {
 
 - [ ] **8-1**: `db_internal.h` — 新 `NostrDB` 構造体定義 (既存の `struct NostrDB` を置き換え)
 - [ ] **8-2**: `db_init.c` — 初期化フロー再実装
-  - 単一ファイル `nostr.db` のオープン/作成
-  - DiskManager → BufferPool → WalManager → IndexManager の順に初期化
-  - WALリカバリ実行
+    - 単一ファイル `nostr.db` のオープン/作成
+    - DiskManager → BufferPool → WalManager → IndexManager の順に初期化
+    - WALリカバリ実行
 - [ ] **8-3**: `db_event.c` — `nostr_db_write_event` 再実装
-  - EventRecordシリアライズ → RecordManager挿入 → IndexManager全インデックス更新
-  - WALトランザクションでラップ
+    - EventRecordシリアライズ → RecordManager挿入 → IndexManager全インデックス更新
+    - WALトランザクションでラップ
 - [ ] **8-4**: `db_event.c` — `nostr_db_get_event_by_id` 再実装
-  - IDインデックス → RecordId → RecordManager読み出し → NostrEventEntityデシリアライズ
+    - IDインデックス → RecordId → RecordManager読み出し → NostrEventEntityデシリアライズ
 - [ ] **8-5**: `db_event.c` — `nostr_db_get_event_at_offset` 再実装
-  - RecordId (page_id + slot_index) から直接読み出し (offsetの意味がRecordIdに変更)
+    - RecordId (page_id + slot_index) から直接読み出し (offsetの意味がRecordIdに変更)
 - [ ] **8-6**: `db_event.c` — `nostr_db_delete_event` 再実装
-  - IDインデックスでRecordId取得 → レコードの削除フラグ設定 → 各インデックスから削除
+    - IDインデックスでRecordId取得 → レコードの削除フラグ設定 → 各インデックスから削除
 - [ ] **8-7**: `db_init.c` — `nostr_db_shutdown` 再実装
-  - チェックポイント実行 → バッファプールフラッシュ → 全リソース解放
+    - チェックポイント実行 → バッファプールフラッシュ → 全リソース解放
 - [ ] **8-8**: `db_init.c` — `nostr_db_get_stats` 再実装
-  - 各B+ツリーのentry_countを集計
+    - 各B+ツリーのentry_countを集計
 - [ ] **8-9**: マイグレーション: 旧形式 (7ファイル) → 新形式 (単一ファイル) のデータ移行ユーティリティ (任意)
 - [ ] **8-10**: `tests/db-test.cpp` — 既存テストの更新 + 統合テスト
-  - 書き込み → 読み出し → 削除 → クエリの一連フロー
-  - 大量データ (10万件) の挿入・検索性能テスト
+    - 書き込み → 読み出し → 削除 → クエリの一連フロー
+    - 大量データ (10万件) の挿入・検索性能テスト
 
 ---
 
@@ -1006,25 +1016,25 @@ typedef struct {
 
 - [ ] **9-1**: `tests/CMakeLists.txt` — 新テスト追加 (disk-test, buffer-test, wal-test, btree-test, record-test, index-test, query-test)
 - [ ] **9-2**: クラッシュリカバリテスト
-  - 書き込み途中でプロセスkill → 再起動 → データ整合性確認
+    - 書き込み途中でプロセスkill → 再起動 → データ整合性確認
 - [ ] **9-3**: 境界値テスト
-  - ページ境界をまたぐレコード (スパンドレコード)
-  - B+ツリー分割が連鎖するケース (大量挿入)
-  - バッファプール満杯時のClock置換
+    - ページ境界をまたぐレコード (スパンドレコード)
+    - B+ツリー分割が連鎖するケース (大量挿入)
+    - バッファプール満杯時のClock置換
 - [ ] **9-4**: ベンチマーク
-  - 挿入スループット: 10万イベント/秒目標
-  - 検索レイテンシ: ID検索 < 10μs (3ページアクセス)
-  - 範囲スキャン: 1000件/ms目標
+    - 挿入スループット: 10万イベント/秒目標
+    - 検索レイテンシ: ID検索 < 10μs (3ページアクセス)
+    - 範囲スキャン: 1000件/ms目標
 - [ ] **9-5**: プロファイリングと最適化
-  - perf/valgring(callgrind) でホットパス特定
-  - 必要に応じてIDインデックスを拡張ハッシュに差し替え
-  - SIMD (SSE4.2) によるキー比較高速化の検討
+    - perf/valgring(callgrind) でホットパス特定
+    - 必要に応じてIDインデックスを拡張ハッシュに差し替え
+    - SIMD (SSE4.2) によるキー比較高速化の検討
 
 ---
 
 ## 実装順序とマイルストーン
 
-```
+```text
 Phase 1: ディスク管理 (1-1 〜 1-6)
    ↓  ページ読み書きが動作
 Phase 2: バッファプール (2-1 〜 2-7)
@@ -1047,7 +1057,7 @@ Phase 9: テスト・最適化 (9-1 〜 9-5)
 
 ### 推定ファイル構成 (新規)
 
-```
+```text
 src/nostr/db/
 ├── disk/
 │   ├── disk_types.h
