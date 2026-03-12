@@ -39,6 +39,9 @@ add_executable(
   ../src/nostr/db/db_mmap.c
   ../src/nostr/db/db_init.c
   ../src/nostr/db/db_event.c
+  ../src/nostr/db/db_query_v2.c
+  ../src/nostr/db/query/query_engine.c
+  ../src/nostr/db/query/query_result_v2.c
   ../src/nostr/db/record/slot_page.c
   ../src/nostr/db/record/record_manager.c
   ../src/nostr/db/record/overflow.c
