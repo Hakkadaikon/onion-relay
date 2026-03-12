@@ -794,32 +794,32 @@ NostrDBError index_manager_delete_event(IndexManager* im, RecordId rid, const Ev
 
 ### TODO Phase 6
 
-- [ ] **6-1**: `index/index_manager.h` — `IndexManager` 構造体、API宣言
-- [ ] **6-2**: `index/index_id.c` — IDインデックス (B+ツリーラッパー)
+- [x] **6-1**: `index/index_manager.h` — `IndexManager` 構造体、API宣言
+- [x] **6-2**: `index/index_id.c` — IDインデックス (B+ツリーラッパー)
   - `index_id_insert(BTree*, const uint8_t id[32], RecordId)` — ユニーク挿入
   - `index_id_lookup(BTree*, const uint8_t id[32], RecordId*)` — 完全一致検索
   - `index_id_prefix_scan(BTree*, const uint8_t* prefix, size_t len, callback)` — プレフィックスマッチ
   - `index_id_delete(BTree*, const uint8_t id[32])` — 削除
-- [ ] **6-3**: `index/index_timeline.c` — タイムラインインデックス
+- [x] **6-3**: `index/index_timeline.c` — タイムラインインデックス
   - キーエンコード/デコード関数
   - `index_timeline_insert(BTree*, int64_t created_at, RecordId)`
   - `index_timeline_range(BTree*, int64_t since, int64_t until, uint32_t limit, callback)` — 範囲スキャン (降順)
-- [ ] **6-4**: `index/index_pubkey.c` — Pubkeyインデックス
+- [x] **6-4**: `index/index_pubkey.c` — Pubkeyインデックス
   - `index_pubkey_insert(BTree*, const uint8_t pubkey[32], RecordId)`
   - `index_pubkey_scan(BTree*, const uint8_t pubkey[32], since, until, limit, callback)` — 特定pubkeyの全イベント
-- [ ] **6-5**: `index/index_kind.c` — Kindインデックス
+- [x] **6-5**: `index/index_kind.c` — Kindインデックス
   - `index_kind_insert(BTree*, uint32_t kind, RecordId)`
   - `index_kind_scan(BTree*, uint32_t kind, since, until, limit, callback)`
-- [ ] **6-6**: `index/index_pubkey_kind.c` — Pubkey+Kind複合インデックス
+- [x] **6-6**: `index/index_pubkey_kind.c` — Pubkey+Kind複合インデックス
   - 複合キー構築 (`pubkey[32] || kind[4]`)
   - `index_pk_kind_insert(BTree*, const uint8_t pubkey[32], uint32_t kind, RecordId)`
   - `index_pk_kind_scan(BTree*, const uint8_t pubkey[32], uint32_t kind, since, until, limit, callback)`
-- [ ] **6-7**: `index/index_tag.c` — Tagインデックス
+- [x] **6-7**: `index/index_tag.c` — Tagインデックス
   - 複合キー構築 (`tag_name[1] || tag_value[32]`)
   - `index_tag_insert(BTree*, uint8_t name, const uint8_t value[32], RecordId)`
   - `index_tag_scan(BTree*, uint8_t name, const uint8_t value[32], since, until, limit, callback)`
-- [ ] **6-8**: `index/index_manager.c` — IndexManager初期化 / イベント挿入・削除時の全インデックス一括更新
-- [ ] **6-9**: `tests/index-test.cpp` — 各インデックスの単体テスト + 統合テスト
+- [x] **6-8**: `index/index_manager.c` — IndexManager初期化 / イベント挿入・削除時の全インデックス一括更新
+- [x] **6-9**: `tests/index-test.cpp` — 各インデックスの単体テスト + 統合テスト
 
 ---
 
