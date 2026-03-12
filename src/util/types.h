@@ -83,6 +83,10 @@ typedef int32_t uid_t;
 typedef uint64_t clock_t;
 #endif
 
+#ifndef INT64_MAX
+#define INT64_MAX 9223372036854775807LL
+#endif
+
 #ifndef bool
 #define bool int32_t
 #endif

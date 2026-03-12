@@ -15,10 +15,11 @@ typedef int32_t (*BTreeKeyCompare)(const void* a, const void* b,
 // Key type (selects comparison function)
 // ============================================================================
 typedef enum {
-  BTREE_KEY_BYTES32   = 0,  // 32-byte fixed (ID, pubkey)
-  BTREE_KEY_INT64     = 1,  // int64_t (created_at)
-  BTREE_KEY_UINT32    = 2,  // uint32_t (kind)
-  BTREE_KEY_COMPOSITE = 3,  // Composite key (pubkey+kind, tag_name+tag_value)
+  BTREE_KEY_BYTES32       = 0,  // 32-byte fixed (ID, pubkey)
+  BTREE_KEY_INT64         = 1,  // int64_t (created_at)
+  BTREE_KEY_UINT32        = 2,  // uint32_t (kind)
+  BTREE_KEY_COMPOSITE     = 3,  // Composite key (pubkey[32]+kind[4])
+  BTREE_KEY_COMPOSITE_TAG = 4,  // Composite key (tag_name[1]+tag_value[32])
 } BTreeKeyType;
 
 // ============================================================================

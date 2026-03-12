@@ -91,6 +91,8 @@ BTreeKeyCompare btree_get_comparator(BTreeKeyType key_type)
       return btree_compare_uint32;
     case BTREE_KEY_COMPOSITE:
       return btree_compare_composite_pk_kind;
+    case BTREE_KEY_COMPOSITE_TAG:
+      return btree_compare_composite_tag;
     default:
       return btree_compare_bytes32;
   }
