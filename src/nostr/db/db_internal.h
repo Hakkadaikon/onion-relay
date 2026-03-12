@@ -3,152 +3,74 @@
 
 #include "../../util/types.h"
 #include "../nostr_types.h"
+#include "buffer/buffer_pool.h"
 #include "db_types.h"
+#include "disk/disk_manager.h"
+#include "index/index_manager.h"
+#include "wal/wal_manager.h"
 
 // ============================================================================
-// Events file header (64 bytes, 8-byte aligned)
+// DB metadata page (stored at page 1)
 // ============================================================================
+#define DB_META_PAGE_ID ((page_id_t)1)
+#define DB_META_MAGIC "NDBMETA\0"
+#define DB_META_MAGIC_SIZE 8
+
 typedef struct {
-  char     magic[8];           // "NOSTRDB\0"
-  uint32_t version;            // NOSTR_DB_VERSION (1)
-  uint32_t flags;              // Reserved for future use
-  uint64_t event_count;        // Number of stored events
-  uint64_t next_write_offset;  // Next write position
-  uint64_t deleted_count;      // Number of logically deleted events
-  uint64_t file_size;          // Current file size
-  uint8_t  reserved[16];       // Reserved for future extension
-} NostrDBEventsHeader;
+  char      magic[8];               // "NDBMETA\0"
+  uint32_t  version;                // DB_FILE_VERSION (2)
+  uint32_t  reserved0;
 
-// Static assertion for header size
-_Static_assert(sizeof(NostrDBEventsHeader) == 64, "NostrDBEventsHeader must be 64 bytes");
+  // Event counters
+  uint64_t  event_count;
+  uint64_t  deleted_count;
 
-// ============================================================================
-// Index file common header (64 bytes)
-// ============================================================================
-typedef struct {
-  char     magic[8];          // Index type identifier
-  uint32_t version;           // NOSTR_DB_VERSION (1)
-  uint32_t flags;             // Reserved for future use
-  uint64_t bucket_count;      // Number of hash buckets
-  uint64_t entry_count;       // Number of registered entries
-  uint64_t pool_next_offset;  // Next write position in entry pool
-  uint64_t pool_size;         // Entry pool size
-  uint8_t  reserved[16];      // Reserved for future extension
-} NostrDBIndexHeader;
+  // Index meta page IDs
+  page_id_t id_index_meta;
+  page_id_t timeline_index_meta;
+  page_id_t pubkey_index_meta;
+  page_id_t kind_index_meta;
+  page_id_t pk_kind_index_meta;
+  page_id_t tag_index_meta;
 
-// Static assertion for header size
-_Static_assert(sizeof(NostrDBIndexHeader) == 64, "NostrDBIndexHeader must be 64 bytes");
+  // Record management
+  page_id_t first_record_page;
+  page_id_t last_record_page;
+
+  uint8_t   reserved[DB_PAGE_SIZE - 72];
+} DBMetaPage;
+
+_Static_assert(sizeof(DBMetaPage) == DB_PAGE_SIZE, "DBMetaPage must be one page");
 
 // ============================================================================
-// Event header in events.dat (48 bytes)
-// ============================================================================
-typedef struct {
-  uint32_t total_length;  // Total size of this event record
-  uint32_t flags;         // bit0 = deleted
-  uint8_t  id[32];        // Event ID (raw bytes)
-  int64_t  created_at;    // Unix timestamp
-} NostrDBEventHeader;
-
-// Static assertion for header size
-_Static_assert(sizeof(NostrDBEventHeader) == 48, "NostrDBEventHeader must be 48 bytes");
-
-// ============================================================================
-// Event body (variable length, follows NostrDBEventHeader)
-// ============================================================================
-typedef struct {
-  uint8_t  pubkey[32];      // Public key (raw bytes)
-  uint8_t  sig[64];         // Signature (raw bytes)
-  uint32_t kind;            // Event type
-  uint32_t content_length;  // Content length
-  // Followed by:
-  // char content[content_length];  // Variable length content
-  // uint32_t tags_length;          // Serialized tags length
-  // uint8_t tags[tags_length];     // Serialized tags
-  // padding to 8-byte boundary
-} NostrDBEventBody;
-
-// Static assertion for minimum body size
-_Static_assert(sizeof(NostrDBEventBody) == 104, "NostrDBEventBody base must be 104 bytes");
-
-// ============================================================================
-// Tag serialization format:
-// [tag_count: uint16_t]
-// For each tag:
-//   [value_count: uint8_t][name_len: uint8_t][name: bytes]
-//   For each value:
-//     [value_len: uint16_t][value: bytes]
-// ============================================================================
-
-// ============================================================================
-// NostrDB internal structure
+// NostrDB internal structure (new B+ tree based architecture)
 // ============================================================================
 struct NostrDB {
-  // File descriptors
-  int32_t events_fd;
-  int32_t id_idx_fd;
-  int32_t pubkey_idx_fd;
-  int32_t kind_idx_fd;
-  int32_t pubkey_kind_idx_fd;
-  int32_t tag_idx_fd;
-  int32_t timeline_idx_fd;
+  DiskManager    disk;
+  BufferPool     buffer_pool;
+  WalManager     wal;
+  IndexManager   indexes;
 
-  // mmap addresses
-  void* events_map;
-  void* id_idx_map;
-  void* pubkey_idx_map;
-  void* kind_idx_map;
-  void* pubkey_kind_idx_map;
-  void* tag_idx_map;
-  void* timeline_idx_map;
-
-  // Map sizes
-  size_t events_map_size;
-  size_t id_idx_map_size;
-  size_t pubkey_idx_map_size;
-  size_t kind_idx_map_size;
-  size_t pubkey_kind_idx_map_size;
-  size_t tag_idx_map_size;
-  size_t timeline_idx_map_size;
-
-  // Header pointers (cast from mmap)
-  NostrDBEventsHeader* events_header;
-  NostrDBIndexHeader*  id_idx_header;
-  NostrDBIndexHeader*  pubkey_idx_header;
-  NostrDBIndexHeader*  kind_idx_header;
-  NostrDBIndexHeader*  pubkey_kind_idx_header;
-  NostrDBIndexHeader*  tag_idx_header;
-  NostrDBIndexHeader*  timeline_idx_header;
+  // Cached metadata from DBMetaPage
+  uint64_t       event_count;
+  uint64_t       deleted_count;
 
   // Data directory path
-  char data_dir[256];
+  char           data_dir[256];
+
+  // Initialization flag
+  bool           initialized;
 };
 
 // ============================================================================
-// Tag serialization functions (declarations)
+// Tag serialization functions (defined in db_tags.c)
 // ============================================================================
-
-/**
- * @brief Serialize tags to binary format
- * @param tags Array of tags
- * @param tag_count Number of tags
- * @param buffer Output buffer
- * @param capacity Buffer capacity
- * @return Number of bytes written, or -1 on error
- */
 int64_t nostr_db_serialize_tags(
   const NostrTagEntity* tags,
   uint32_t              tag_count,
   uint8_t*              buffer,
   size_t                capacity);
 
-/**
- * @brief Deserialize tags from binary format
- * @param buffer Input buffer
- * @param length Buffer length
- * @param tags Output tags array
- * @param max_tags Maximum number of tags
- * @return Number of tags deserialized, or -1 on error
- */
 int32_t nostr_db_deserialize_tags(
   const uint8_t*  buffer,
   size_t          length,
