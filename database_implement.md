@@ -857,19 +857,19 @@ typedef struct {
 
 ### TODO Phase 7
 
-- [ ] **7-1**: `query/db_query_types.h` — `NostrDBFilter` は現行維持 (互換性)
-- [ ] **7-2**: `query/db_query_result.c` — `NostrDBResultSet` をRecordIdベースに更新
+- [x] **7-1**: `query/db_query_types.h` — `NostrDBFilter` は現行維持 (互換性)
+- [x] **7-2**: `query/query_result_v2.c` — `QueryResultSet` をRecordIdベースに更新
   - ブルームフィルタによるO(1)近似重複チェック追加
-- [ ] **7-3**: `query/db_query.c` — 各クエリ戦略をB+ツリーAPIに接続
-  - `nostr_db_query_by_ids()` → `index_id_lookup()` に置き換え
-  - `nostr_db_query_by_pubkey()` → `index_pubkey_scan()` に置き換え
-  - `nostr_db_query_by_kind()` → `index_kind_scan()` に置き換え
-  - `nostr_db_query_by_pubkey_kind()` → `index_pk_kind_scan()` に置き換え
-  - `nostr_db_query_by_tag()` → `index_tag_scan()` に置き換え
-  - `nostr_db_query_timeline_scan()` → `index_timeline_range()` に置き換え
-- [ ] **7-4**: `query/db_query.c` — `event_matches_filter()` のタグポストフィルタ実装
-  - レコード読み出し → タグデシリアライズ → フィルタマッチング
-- [ ] **7-5**: `tests/query-test.cpp` — 全クエリ戦略の統合テスト
+- [x] **7-3**: `query/query_engine.c` — 各クエリ戦略をB+ツリーAPIに接続
+  - `query_by_ids()` → `index_id_lookup()` に置き換え
+  - `query_by_pubkey()` → `btree_scan_key(pubkey_index)` に置き換え
+  - `query_by_kind()` → `btree_scan_key(kind_index)` に置き換え
+  - `query_by_pubkey_kind()` → `btree_scan_key(pubkey_kind_index)` に置き換え
+  - `query_by_tag()` → `btree_scan_key(tag_index)` に置き換え
+  - `query_timeline_scan()` → `btree_range_scan(timeline_index)` に置き換え
+- [x] **7-4**: `query/query_engine.c` — `query_post_filter()` のタグポストフィルタ実装
+  - レコード読み出し → フィルタマッチング (ID, authors, kinds, time range)
+- [x] **7-5**: `tests/query_engine_test.cpp` — 全クエリ戦略の統合テスト (14テスト)
 
 ---
 
