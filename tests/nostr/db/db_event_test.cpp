@@ -256,6 +256,43 @@ TEST_F(NostrDBEventTest, DeleteEvent) {
   free_event(out);
 }
 
+TEST_F(NostrDBEventTest, PersistenceAfterReopen) {
+  // Write an event
+  NostrEventEntity* event = allocate_event();
+  create_sample_event(event);
+  strcpy(event->content, "Persistent data");
+
+  NostrDBError err = nostr_db_write_event(db, event);
+  ASSERT_EQ(err, NOSTR_DB_OK);
+
+  // Shutdown and reopen
+  nostr_db_shutdown(db);
+  db = nullptr;
+
+  err = nostr_db_init(&db, test_dir);
+  ASSERT_EQ(err, NOSTR_DB_OK);
+
+  // Verify stats persisted
+  NostrDBStats stats;
+  nostr_db_get_stats(db, &stats);
+  EXPECT_EQ(stats.event_count, 1u);
+
+  // Verify event can still be read
+  uint8_t id_bytes[32];
+  hex_to_bytes(event->id, id_bytes, 32);
+
+  NostrEventEntity* out = allocate_event();
+  err = nostr_db_get_event_by_id(db, id_bytes, out);
+  ASSERT_EQ(err, NOSTR_DB_OK);
+
+  EXPECT_STREQ(out->id, event->id);
+  EXPECT_STREQ(out->content, "Persistent data");
+  EXPECT_EQ(out->kind, event->kind);
+
+  free_event(event);
+  free_event(out);
+}
+
 TEST_F(NostrDBEventTest, DeleteNonExistentEventReturnsNotFound) {
   uint8_t fake_id[32] = {0xFF};
 
