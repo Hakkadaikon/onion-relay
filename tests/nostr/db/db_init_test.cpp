@@ -3,9 +3,9 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
-#include <unistd.h>
-#include <sys/stat.h>
 #include <dirent.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 extern "C" {
 
@@ -13,19 +13,19 @@ extern "C" {
 typedef struct NostrDB NostrDB;
 
 typedef enum {
-  NOSTR_DB_OK = 0,
-  NOSTR_DB_ERROR_FILE_OPEN = -1,
-  NOSTR_DB_ERROR_FILE_CREATE = -2,
-  NOSTR_DB_ERROR_MMAP_FAILED = -3,
-  NOSTR_DB_ERROR_INVALID_MAGIC = -4,
+  NOSTR_DB_OK                     = 0,
+  NOSTR_DB_ERROR_FILE_OPEN        = -1,
+  NOSTR_DB_ERROR_FILE_CREATE      = -2,
+  NOSTR_DB_ERROR_MMAP_FAILED      = -3,
+  NOSTR_DB_ERROR_INVALID_MAGIC    = -4,
   NOSTR_DB_ERROR_VERSION_MISMATCH = -5,
-  NOSTR_DB_ERROR_FULL = -6,
-  NOSTR_DB_ERROR_NOT_FOUND = -7,
-  NOSTR_DB_ERROR_DUPLICATE = -8,
-  NOSTR_DB_ERROR_INVALID_EVENT = -9,
-  NOSTR_DB_ERROR_INDEX_CORRUPT = -10,
-  NOSTR_DB_ERROR_NULL_PARAM = -11,
-  NOSTR_DB_ERROR_FSTAT_FAILED = -12,
+  NOSTR_DB_ERROR_FULL             = -6,
+  NOSTR_DB_ERROR_NOT_FOUND        = -7,
+  NOSTR_DB_ERROR_DUPLICATE        = -8,
+  NOSTR_DB_ERROR_INVALID_EVENT    = -9,
+  NOSTR_DB_ERROR_INDEX_CORRUPT    = -10,
+  NOSTR_DB_ERROR_NULL_PARAM       = -11,
+  NOSTR_DB_ERROR_FSTAT_FAILED     = -12,
   NOSTR_DB_ERROR_FTRUNCATE_FAILED = -13,
 } NostrDBError;
 
@@ -42,16 +42,15 @@ typedef struct {
 
 // DB functions
 NostrDBError nostr_db_init(NostrDB** db, const char* data_dir);
-void nostr_db_shutdown(NostrDB* db);
+void         nostr_db_shutdown(NostrDB* db);
 NostrDBError nostr_db_get_stats(NostrDB* db, NostrDBStats* stats);
 
 }  // extern "C"
 
 class NostrDBInitTest : public ::testing::Test {
-protected:
+ protected:
   void SetUp() override {
     snprintf(test_dir, sizeof(test_dir), "/tmp/nostr_db_test_%d", getpid());
-    // Create test directory
     mkdir(test_dir, 0755);
     db = nullptr;
   }
@@ -61,7 +60,6 @@ protected:
       nostr_db_shutdown(db);
       db = nullptr;
     }
-    // Clean up test directory and files
     cleanup_directory(test_dir);
   }
 
@@ -72,7 +70,7 @@ protected:
     }
 
     struct dirent* entry;
-    char filepath[512];
+    char           filepath[512];
 
     while ((entry = readdir(dir)) != nullptr) {
       if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
@@ -86,7 +84,7 @@ protected:
     rmdir(path);
   }
 
-  char test_dir[256];
+  char     test_dir[256];
   NostrDB* db;
 };
 
@@ -95,28 +93,13 @@ TEST_F(NostrDBInitTest, InitCreatesFiles) {
   ASSERT_EQ(err, NOSTR_DB_OK);
   ASSERT_NE(db, nullptr);
 
-  // Check that files were created
+  // Check that the single database file was created
   char filepath[512];
-
-  snprintf(filepath, sizeof(filepath), "%s/events.dat", test_dir);
+  snprintf(filepath, sizeof(filepath), "%s/nostr.db", test_dir);
   EXPECT_EQ(access(filepath, F_OK), 0);
 
-  snprintf(filepath, sizeof(filepath), "%s/idx_id.dat", test_dir);
-  EXPECT_EQ(access(filepath, F_OK), 0);
-
-  snprintf(filepath, sizeof(filepath), "%s/idx_pubkey.dat", test_dir);
-  EXPECT_EQ(access(filepath, F_OK), 0);
-
-  snprintf(filepath, sizeof(filepath), "%s/idx_kind.dat", test_dir);
-  EXPECT_EQ(access(filepath, F_OK), 0);
-
-  snprintf(filepath, sizeof(filepath), "%s/idx_pubkey_kind.dat", test_dir);
-  EXPECT_EQ(access(filepath, F_OK), 0);
-
-  snprintf(filepath, sizeof(filepath), "%s/idx_tag.dat", test_dir);
-  EXPECT_EQ(access(filepath, F_OK), 0);
-
-  snprintf(filepath, sizeof(filepath), "%s/idx_timeline.dat", test_dir);
+  // Check WAL file
+  snprintf(filepath, sizeof(filepath), "%s/wal.log", test_dir);
   EXPECT_EQ(access(filepath, F_OK), 0);
 }
 
