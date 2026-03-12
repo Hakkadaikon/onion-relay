@@ -16,7 +16,7 @@ typedef struct {
   int64_t*  created_at;  // Parallel array for sorting
   uint32_t  count;
   uint32_t  capacity;
-  uint64_t  bloom[64];   // 512-byte bloom filter for O(1) dedup
+  uint64_t  bloom[64];  // 512-byte bloom filter for O(1) dedup
 } QueryResultSet;
 
 // ============================================================================
@@ -46,7 +46,7 @@ NostrDBError query_by_pubkey(IndexManager* im, const NostrDBFilter* filter,
 NostrDBError query_by_kind(IndexManager* im, const NostrDBFilter* filter,
                            QueryResultSet* rs);
 
-NostrDBError query_by_pubkey_kind(IndexManager* im,
+NostrDBError query_by_pubkey_kind(IndexManager*        im,
                                   const NostrDBFilter* filter,
                                   QueryResultSet*      rs);
 

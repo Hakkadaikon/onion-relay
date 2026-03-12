@@ -65,8 +65,8 @@ static bool scan_collect_cb(const void* key, const void* value, void* ud)
   }
 
   // Apply time filters
-  if (ctx->since > 0 && ts < ctx->since) return true;   // skip, continue
-  if (ctx->until > 0 && ts > ctx->until) return true;   // skip, continue
+  if (ctx->since > 0 && ts < ctx->since) return true;  // skip, continue
+  if (ctx->until > 0 && ts > ctx->until) return true;  // skip, continue
 
   query_result_add(ctx->rs, *rid, ts);
 
@@ -85,7 +85,7 @@ NostrDBError query_by_ids(IndexManager* im, BufferPool* pool,
   require_not_null(rs, NOSTR_DB_ERROR_NULL_PARAM);
 
   uint32_t limit = filter->limit > 0 ? filter->limit
-                                      : NOSTR_DB_QUERY_DEFAULT_LIMIT;
+                                     : NOSTR_DB_QUERY_DEFAULT_LIMIT;
 
   for (size_t i = 0; i < filter->ids_count && rs->count < limit; i++) {
     RecordId     rid;
@@ -116,8 +116,8 @@ NostrDBError query_by_pubkey(IndexManager* im, const NostrDBFilter* filter,
   require_not_null(rs, NOSTR_DB_ERROR_NULL_PARAM);
 
   uint32_t limit = filter->limit > 0 ? filter->limit
-                                      : NOSTR_DB_QUERY_DEFAULT_LIMIT;
-  ScanCtx ctx = {rs, limit, filter->since, filter->until, im->pool};
+                                     : NOSTR_DB_QUERY_DEFAULT_LIMIT;
+  ScanCtx  ctx   = {rs, limit, filter->since, filter->until, im->pool};
 
   for (size_t i = 0; i < filter->authors_count && rs->count < limit; i++) {
     ctx.limit = limit - rs->count;
@@ -139,8 +139,8 @@ NostrDBError query_by_kind(IndexManager* im, const NostrDBFilter* filter,
   require_not_null(rs, NOSTR_DB_ERROR_NULL_PARAM);
 
   uint32_t limit = filter->limit > 0 ? filter->limit
-                                      : NOSTR_DB_QUERY_DEFAULT_LIMIT;
-  ScanCtx ctx = {rs, limit, filter->since, filter->until, im->pool};
+                                     : NOSTR_DB_QUERY_DEFAULT_LIMIT;
+  ScanCtx  ctx   = {rs, limit, filter->since, filter->until, im->pool};
 
   for (size_t i = 0; i < filter->kinds_count && rs->count < limit; i++) {
     ctx.limit = limit - rs->count;
@@ -153,7 +153,7 @@ NostrDBError query_by_kind(IndexManager* im, const NostrDBFilter* filter,
 // ============================================================================
 // query_by_pubkey_kind: Scan composite pubkey+kind index
 // ============================================================================
-NostrDBError query_by_pubkey_kind(IndexManager* im,
+NostrDBError query_by_pubkey_kind(IndexManager*        im,
                                   const NostrDBFilter* filter,
                                   QueryResultSet*      rs)
 {
@@ -162,8 +162,8 @@ NostrDBError query_by_pubkey_kind(IndexManager* im,
   require_not_null(rs, NOSTR_DB_ERROR_NULL_PARAM);
 
   uint32_t limit = filter->limit > 0 ? filter->limit
-                                      : NOSTR_DB_QUERY_DEFAULT_LIMIT;
-  ScanCtx ctx = {rs, limit, filter->since, filter->until, im->pool};
+                                     : NOSTR_DB_QUERY_DEFAULT_LIMIT;
+  ScanCtx  ctx   = {rs, limit, filter->since, filter->until, im->pool};
 
   for (size_t i = 0; i < filter->authors_count && rs->count < limit; i++) {
     for (size_t j = 0; j < filter->kinds_count && rs->count < limit; j++) {
@@ -190,8 +190,8 @@ NostrDBError query_by_tag(IndexManager* im, const NostrDBFilter* filter,
   require_not_null(rs, NOSTR_DB_ERROR_NULL_PARAM);
 
   uint32_t limit = filter->limit > 0 ? filter->limit
-                                      : NOSTR_DB_QUERY_DEFAULT_LIMIT;
-  ScanCtx ctx = {rs, limit, filter->since, filter->until, im->pool};
+                                     : NOSTR_DB_QUERY_DEFAULT_LIMIT;
+  ScanCtx  ctx   = {rs, limit, filter->since, filter->until, im->pool};
 
   for (size_t i = 0; i < filter->tags_count && rs->count < limit; i++) {
     const NostrDBFilterTag* tag = &filter->tags[i];
@@ -278,7 +278,7 @@ NostrDBError query_timeline_scan(IndexManager* im, const NostrDBFilter* filter,
   require_not_null(rs, NOSTR_DB_ERROR_NULL_PARAM);
 
   uint32_t limit = filter->limit > 0 ? filter->limit
-                                      : NOSTR_DB_QUERY_DEFAULT_LIMIT;
+                                     : NOSTR_DB_QUERY_DEFAULT_LIMIT;
 
   // Encode time range for descending B+ tree
   // since=oldest, until=newest
@@ -458,7 +458,7 @@ NostrDBError query_execute(IndexManager* im, BufferPool* pool,
 
   // Apply limit
   uint32_t limit = filter->limit > 0 ? filter->limit
-                                      : NOSTR_DB_QUERY_DEFAULT_LIMIT;
+                                     : NOSTR_DB_QUERY_DEFAULT_LIMIT;
   query_result_apply_limit(rs, limit);
 
   return NOSTR_DB_OK;

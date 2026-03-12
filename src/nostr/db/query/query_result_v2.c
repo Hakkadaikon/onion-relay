@@ -1,7 +1,6 @@
-#include "query_engine.h"
-
 #include "../../../arch/memory.h"
 #include "../../../arch/mmap.h"
+#include "query_engine.h"
 
 // ============================================================================
 // Internal: Allocate memory via anonymous mmap
@@ -37,12 +36,12 @@ static inline uint32_t bloom_hash2(RecordId rid)
 
 static inline bool bloom_test(const uint64_t bloom[64], RecordId rid)
 {
-  uint32_t h1  = bloom_hash1(rid) % 4096;
-  uint32_t h2  = bloom_hash2(rid) % 4096;
-  uint32_t i1  = h1 / 64;
-  uint32_t b1  = h1 % 64;
-  uint32_t i2  = h2 / 64;
-  uint32_t b2  = h2 % 64;
+  uint32_t h1 = bloom_hash1(rid) % 4096;
+  uint32_t h2 = bloom_hash2(rid) % 4096;
+  uint32_t i1 = h1 / 64;
+  uint32_t b1 = h1 % 64;
+  uint32_t i2 = h2 / 64;
+  uint32_t b2 = h2 % 64;
   return (bloom[i1] & (1ULL << b1)) && (bloom[i2] & (1ULL << b2));
 }
 

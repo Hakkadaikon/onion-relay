@@ -306,6 +306,46 @@ target_link_libraries(
   GTest::gtest_main
 )
 
+add_executable(
+  query-engine-test
+  nostr/db/query/query_engine_test.cpp
+  ../src/nostr/db/query/query_engine.c
+  ../src/nostr/db/query/query_result_v2.c
+  ../src/nostr/db/index/index_manager.c
+  ../src/nostr/db/index/index_id.c
+  ../src/nostr/db/index/index_timeline.c
+  ../src/nostr/db/index/index_pubkey.c
+  ../src/nostr/db/index/index_kind.c
+  ../src/nostr/db/index/index_pubkey_kind.c
+  ../src/nostr/db/index/index_tag.c
+  ../src/nostr/db/record/slot_page.c
+  ../src/nostr/db/record/record_manager.c
+  ../src/nostr/db/record/overflow.c
+  ../src/nostr/db/btree/btree_node.c
+  ../src/nostr/db/btree/btree_search.c
+  ../src/nostr/db/btree/btree_insert.c
+  ../src/nostr/db/btree/btree_delete.c
+  ../src/nostr/db/btree/btree_overflow.c
+  ../src/nostr/db/btree/btree_compare.c
+  ../src/nostr/db/buffer/buffer_pool.c
+  ../src/nostr/db/disk/disk_manager.c
+  ../src/nostr/db/disk/disk_io.c
+  ../src/nostr/db/disk/disk_alloc.c
+  ../src/nostr/db/db_file.c
+  ../src/util/log.c
+  ../src/arch/linux/x86_64/asm_syscall.S
+)
+
+target_include_directories(
+  query-engine-test PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/../src
+)
+
+target_link_libraries(
+  query-engine-test
+  GTest::gtest_main
+)
+
 gtest_discover_tests(websocket-test)
 gtest_discover_tests(db-test)
 gtest_discover_tests(event-test)
@@ -317,3 +357,4 @@ gtest_discover_tests(wal-test)
 gtest_discover_tests(record-test)
 gtest_discover_tests(btree-test)
 gtest_discover_tests(index-test)
+gtest_discover_tests(query-engine-test)
