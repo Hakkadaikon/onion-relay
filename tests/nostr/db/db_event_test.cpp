@@ -353,3 +353,135 @@ TEST_F(NostrDBEventTest, WriteEventWithTags) {
   free_event(event);
   free_event(out);
 }
+
+// ============================================================================
+// Phase 9-2: Crash recovery / data consistency tests
+// ============================================================================
+
+TEST_F(NostrDBEventTest, PersistenceMultipleEventsAfterReopen) {
+  // Write multiple events, shutdown, reopen, verify all data
+  NostrEventEntity* event = allocate_event();
+
+  for (int i = 0; i < 10; i++) {
+    create_sample_event(event);
+    snprintf(
+        event->id, sizeof(event->id),
+        "00000000000000000000000000000000000000000000000000000000000000%02x",
+        i + 1);
+    event->kind       = (uint32_t)(i + 1);
+    event->created_at = 1704067200 + i;
+    snprintf(event->content, sizeof(event->content), "Event %d", i);
+
+    NostrDBError err = nostr_db_write_event(db, event);
+    ASSERT_EQ(err, NOSTR_DB_OK);
+  }
+
+  // Shutdown and reopen
+  nostr_db_shutdown(db);
+  db = nullptr;
+
+  NostrDBError err = nostr_db_init(&db, test_dir);
+  ASSERT_EQ(err, NOSTR_DB_OK);
+
+  NostrDBStats stats;
+  nostr_db_get_stats(db, &stats);
+  EXPECT_EQ(stats.event_count, 10u);
+
+  // Verify each event individually
+  NostrEventEntity* out = allocate_event();
+  for (int i = 0; i < 10; i++) {
+    char id_hex[65];
+    snprintf(
+        id_hex, sizeof(id_hex),
+        "00000000000000000000000000000000000000000000000000000000000000%02x",
+        i + 1);
+    uint8_t id_bytes[32];
+    hex_to_bytes(id_hex, id_bytes, 32);
+
+    err = nostr_db_get_event_by_id(db, id_bytes, out);
+    ASSERT_EQ(err, NOSTR_DB_OK) << "Failed to read event " << i;
+    EXPECT_STREQ(out->id, id_hex);
+    EXPECT_EQ(out->kind, (uint32_t)(i + 1));
+  }
+
+  free_event(event);
+  free_event(out);
+}
+
+TEST_F(NostrDBEventTest, PersistenceDeleteThenReopen) {
+  NostrEventEntity* event = allocate_event();
+
+  // Write 5 events
+  for (int i = 0; i < 5; i++) {
+    create_sample_event(event);
+    snprintf(
+        event->id, sizeof(event->id),
+        "00000000000000000000000000000000000000000000000000000000000000%02x",
+        i + 1);
+    nostr_db_write_event(db, event);
+  }
+
+  // Delete event 3
+  uint8_t del_id[32];
+  hex_to_bytes(
+      "0000000000000000000000000000000000000000000000000000000000000003",
+      del_id, 32);
+  ASSERT_EQ(nostr_db_delete_event(db, del_id), NOSTR_DB_OK);
+
+  // Shutdown and reopen
+  nostr_db_shutdown(db);
+  db = nullptr;
+  ASSERT_EQ(nostr_db_init(&db, test_dir), NOSTR_DB_OK);
+
+  NostrDBStats stats;
+  nostr_db_get_stats(db, &stats);
+  EXPECT_EQ(stats.deleted_count, 1u);
+
+  // Deleted event should not be found
+  NostrEventEntity* out = allocate_event();
+  EXPECT_EQ(nostr_db_get_event_by_id(db, del_id, out),
+            NOSTR_DB_ERROR_NOT_FOUND);
+
+  // Other events should still be readable
+  uint8_t id1[32];
+  hex_to_bytes(
+      "0000000000000000000000000000000000000000000000000000000000000001",
+      id1, 32);
+  EXPECT_EQ(nostr_db_get_event_by_id(db, id1, out), NOSTR_DB_OK);
+
+  free_event(event);
+  free_event(out);
+}
+
+TEST_F(NostrDBEventTest, PersistenceWithTagsAfterReopen) {
+  NostrEventEntity* event = allocate_event();
+  create_sample_event(event);
+
+  // Add tags
+  strcpy(event->tags[0].key, "e");
+  strcpy(event->tags[0].values[0],
+         "0000000000000000000000000000000000000000000000000000000000000099");
+  event->tags[0].item_count = 1;
+  event->tag_count          = 1;
+  strcpy(event->content, "Tagged event");
+
+  ASSERT_EQ(nostr_db_write_event(db, event), NOSTR_DB_OK);
+
+  // Shutdown and reopen
+  nostr_db_shutdown(db);
+  db = nullptr;
+  ASSERT_EQ(nostr_db_init(&db, test_dir), NOSTR_DB_OK);
+
+  // Verify event with tags
+  uint8_t id_bytes[32];
+  hex_to_bytes(event->id, id_bytes, 32);
+
+  NostrEventEntity* out = allocate_event();
+  ASSERT_EQ(nostr_db_get_event_by_id(db, id_bytes, out), NOSTR_DB_OK);
+  EXPECT_EQ(out->tag_count, 1u);
+  EXPECT_STREQ(out->tags[0].key, "e");
+  EXPECT_STREQ(out->content, "Tagged event");
+
+  free_event(event);
+  free_event(out);
+}
