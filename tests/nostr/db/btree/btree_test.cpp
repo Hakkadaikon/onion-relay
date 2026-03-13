@@ -899,3 +899,99 @@ TEST(BTreeTypeSizeTest, InnerCapacity) {
   max = BTREE_INNER_MAX_KEYS(32);
   EXPECT_GT(max, 100u);
 }
+
+// ============================================================================
+// Phase 9-3: Cascading split tests (mass insertion)
+// ============================================================================
+
+TEST_F(BTreeTest, CascadingSplitsLargeKeys) {
+  // Use 32-byte keys with many entries to force cascading inner node splits
+  ASSERT_EQ(NOSTR_DB_OK,
+            btree_create(&tree, &pool, 32, sizeof(RecordId), BTREE_KEY_BYTES32));
+
+  uint32_t count = 5000;
+  for (uint32_t i = 1; i <= count; i++) {
+    uint8_t  key[32];
+    memset(key, 0, 32);
+    // Sequential big-endian keys
+    key[0] = (uint8_t)(i >> 24);
+    key[1] = (uint8_t)(i >> 16);
+    key[2] = (uint8_t)(i >> 8);
+    key[3] = (uint8_t)(i);
+    RecordId rid = {i, (uint16_t)(i & 0xFFFF)};
+    ASSERT_EQ(NOSTR_DB_OK, btree_insert(&tree, key, &rid))
+        << "Failed at insert " << i;
+  }
+
+  EXPECT_EQ(count, tree.meta.entry_count);
+  // With ~106 keys per leaf, 5000 entries needs ~47 leaves → height >= 2
+  EXPECT_GE(tree.meta.height, 2u);
+  EXPECT_GT(tree.meta.leaf_count, 30u);
+  EXPECT_GE(tree.meta.inner_count, 1u);
+
+  // Verify all entries retrievable
+  for (uint32_t i = 1; i <= count; i++) {
+    uint8_t key[32];
+    memset(key, 0, 32);
+    key[0] = (uint8_t)(i >> 24);
+    key[1] = (uint8_t)(i >> 16);
+    key[2] = (uint8_t)(i >> 8);
+    key[3] = (uint8_t)(i);
+    RecordId result;
+    ASSERT_EQ(NOSTR_DB_OK, btree_search(&tree, key, &result))
+        << "Failed to find key " << i;
+    EXPECT_EQ(i, result.page_id);
+  }
+}
+
+TEST_F(BTreeTest, ReverseInsertOrder) {
+  ASSERT_EQ(NOSTR_DB_OK,
+            btree_create(&tree, &pool, 4, sizeof(RecordId), BTREE_KEY_UINT32));
+
+  // Insert in reverse order to stress different split patterns
+  uint32_t count = 5000;
+  for (uint32_t i = count; i >= 1; i--) {
+    RecordId rid = {i, 0};
+    ASSERT_EQ(NOSTR_DB_OK, btree_insert(&tree, &i, &rid));
+  }
+
+  EXPECT_EQ(count, tree.meta.entry_count);
+  EXPECT_GE(tree.meta.height, 2u);
+
+  // Verify all entries
+  for (uint32_t i = 1; i <= count; i++) {
+    RecordId result;
+    ASSERT_EQ(NOSTR_DB_OK, btree_search(&tree, &i, &result));
+    EXPECT_EQ(i, result.page_id);
+  }
+}
+
+TEST_F(BTreeTest, InsertDeleteMassive) {
+  ASSERT_EQ(NOSTR_DB_OK,
+            btree_create(&tree, &pool, 4, sizeof(RecordId), BTREE_KEY_UINT32));
+
+  // Insert 3000 entries
+  uint32_t count = 3000;
+  for (uint32_t i = 1; i <= count; i++) {
+    RecordId rid = {i, 0};
+    ASSERT_EQ(NOSTR_DB_OK, btree_insert(&tree, &i, &rid));
+  }
+
+  // Delete every other entry
+  for (uint32_t i = 2; i <= count; i += 2) {
+    ASSERT_EQ(NOSTR_DB_OK, btree_delete(&tree, &i));
+  }
+
+  EXPECT_EQ(count / 2, tree.meta.entry_count);
+
+  // Verify remaining entries
+  for (uint32_t i = 1; i <= count; i++) {
+    RecordId result;
+    if (i % 2 == 1) {
+      ASSERT_EQ(NOSTR_DB_OK, btree_search(&tree, &i, &result));
+      EXPECT_EQ(i, result.page_id);
+    } else {
+      EXPECT_EQ(NOSTR_DB_ERROR_NOT_FOUND, btree_search(&tree, &i, &result));
+    }
+  }
+}
