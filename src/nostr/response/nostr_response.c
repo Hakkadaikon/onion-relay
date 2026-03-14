@@ -35,6 +35,19 @@ static size_t safe_copy(char* dest, size_t dest_capacity, size_t offset, const c
 // Helper: Copy string with JSON escaping
 // Returns number of characters that WOULD be written (for overflow detection)
 // ============================================================================
+static const char HEX_CHARS[] = "0123456789abcdef";
+
+static size_t escape_char_len(char c)
+{
+  unsigned char uc = (unsigned char)c;
+  if (c == '"' || c == '\\' || c == '\b' || c == '\f' || c == '\n' || c == '\r' || c == '\t') {
+    return 2;
+  } else if (uc < 0x20) {
+    return 6;  // \u00XX
+  }
+  return 1;
+}
+
 static size_t safe_copy_json_escaped(char* dest, size_t dest_capacity, size_t offset, const char* src)
 {
   if (src == NULL) {
@@ -44,12 +57,7 @@ static size_t safe_copy_json_escaped(char* dest, size_t dest_capacity, size_t of
   // First, calculate the total length needed
   size_t total_needed = 0;
   for (size_t i = 0; src[i] != '\0'; i++) {
-    char c = src[i];
-    if (c == '"' || c == '\\' || c == '\n' || c == '\r' || c == '\t') {
-      total_needed += 2;  // Escaped chars take 2 chars
-    } else {
-      total_needed += 1;
-    }
+    total_needed += escape_char_len(src[i]);
   }
 
   if (dest == NULL || offset >= dest_capacity) {
@@ -61,43 +69,41 @@ static size_t safe_copy_json_escaped(char* dest, size_t dest_capacity, size_t of
   size_t i       = 0;
 
   while (src[i] != '\0' && (offset + written) < dest_capacity - 1) {
-    char c = src[i];
+    char          c    = src[i];
+    unsigned char uc   = (unsigned char)c;
+    size_t        elen = escape_char_len(c);
+
+    if ((offset + written + elen - 1) >= dest_capacity - 1) {
+      break;
+    }
 
     if (c == '"' || c == '\\') {
-      if ((offset + written + 1) >= dest_capacity - 1) {
-        break;
-      }
-      dest[offset + written] = '\\';
-      written++;
-      dest[offset + written] = c;
-      written++;
+      dest[offset + written++] = '\\';
+      dest[offset + written++] = c;
+    } else if (c == '\b') {
+      dest[offset + written++] = '\\';
+      dest[offset + written++] = 'b';
+    } else if (c == '\f') {
+      dest[offset + written++] = '\\';
+      dest[offset + written++] = 'f';
     } else if (c == '\n') {
-      if ((offset + written + 1) >= dest_capacity - 1) {
-        break;
-      }
-      dest[offset + written] = '\\';
-      written++;
-      dest[offset + written] = 'n';
-      written++;
+      dest[offset + written++] = '\\';
+      dest[offset + written++] = 'n';
     } else if (c == '\r') {
-      if ((offset + written + 1) >= dest_capacity - 1) {
-        break;
-      }
-      dest[offset + written] = '\\';
-      written++;
-      dest[offset + written] = 'r';
-      written++;
+      dest[offset + written++] = '\\';
+      dest[offset + written++] = 'r';
     } else if (c == '\t') {
-      if ((offset + written + 1) >= dest_capacity - 1) {
-        break;
-      }
-      dest[offset + written] = '\\';
-      written++;
-      dest[offset + written] = 't';
-      written++;
+      dest[offset + written++] = '\\';
+      dest[offset + written++] = 't';
+    } else if (uc < 0x20) {
+      dest[offset + written++] = '\\';
+      dest[offset + written++] = 'u';
+      dest[offset + written++] = '0';
+      dest[offset + written++] = '0';
+      dest[offset + written++] = HEX_CHARS[(uc >> 4) & 0x0F];
+      dest[offset + written++] = HEX_CHARS[uc & 0x0F];
     } else {
-      dest[offset + written] = c;
-      written++;
+      dest[offset + written++] = c;
     }
     i++;
   }
