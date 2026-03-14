@@ -311,6 +311,93 @@ NostrDBError query_timeline_scan(IndexManager* im, const NostrDBFilter* filter,
 }
 
 // ============================================================================
+// Internal: Convert hex char to value (for tag post-filter)
+// ============================================================================
+static int32_t pf_hex_val(uint8_t c)
+{
+  if (c >= '0' && c <= '9') return c - '0';
+  if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+  if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+  return -1;
+}
+
+// ============================================================================
+// Internal: Check if serialized tags match a single filter tag requirement
+// Returns true if the event's tags contain a match for the filter tag
+// ============================================================================
+static bool tags_match_filter_tag(const uint8_t* tags_data, uint16_t tags_length,
+                                  const NostrDBFilterTag* ftag)
+{
+  if (is_null(tags_data) || tags_length < 2) return false;
+
+  const uint8_t* ptr = tags_data;
+  const uint8_t* end = tags_data + tags_length;
+
+  uint16_t tag_count = (uint16_t)(ptr[0] | (ptr[1] << 8));
+  ptr += 2;
+
+  for (uint16_t i = 0; i < tag_count && ptr + 2 <= end; i++) {
+    uint8_t value_count = *ptr++;
+    uint8_t name_len    = *ptr++;
+
+    if (ptr + name_len > end) break;
+
+    // Check if this tag name matches the filter tag name
+    bool name_matches = (name_len == 1 && ptr[0] == (uint8_t)ftag->name);
+    ptr += name_len;
+
+    // Process values
+    for (uint8_t j = 0; j < value_count && ptr + 2 <= end; j++) {
+      uint16_t value_len = (uint16_t)(ptr[0] | (ptr[1] << 8));
+      ptr += 2;
+
+      if (ptr + value_len > end) return false;
+
+      // Only check first value (index only indexes first value)
+      if (name_matches && j == 0) {
+        // Check against all filter values
+        for (size_t fvi = 0; fvi < ftag->values_count; fvi++) {
+          if (ftag->name == 'e' || ftag->name == 'p') {
+            // Hex comparison: convert serialized value to binary
+            if (value_len == 64) {
+              uint8_t bin[32];
+              bool    valid = true;
+              for (size_t b = 0; b < 32; b++) {
+                int32_t h = pf_hex_val(ptr[b * 2]);
+                int32_t l = pf_hex_val(ptr[b * 2 + 1]);
+                if (h < 0 || l < 0) {
+                  valid = false;
+                  break;
+                }
+                bin[b] = (uint8_t)((h << 4) | l);
+              }
+              if (valid &&
+                  internal_memcmp(bin, ftag->values[fvi], 32) == 0) {
+                return true;
+              }
+            }
+          } else {
+            // String comparison: filter value is zero-padded to 32 bytes
+            size_t fval_len = 0;
+            while (fval_len < 32 && ftag->values[fvi][fval_len] != 0) {
+              fval_len++;
+            }
+            if (value_len == fval_len &&
+                internal_memcmp(ptr, ftag->values[fvi], fval_len) == 0) {
+              return true;
+            }
+          }
+        }
+      }
+
+      ptr += value_len;
+    }
+  }
+
+  return false;
+}
+
+// ============================================================================
 // query_post_filter: Read EventRecord and verify against full filter
 // ============================================================================
 NostrDBError query_post_filter(BufferPool* pool, QueryResultSet* rs,
@@ -370,6 +457,24 @@ NostrDBError query_post_filter(BufferPool* pool, QueryResultSet* rs,
         }
       }
       if (!match) continue;
+    }
+
+    // Check tag filters (all tag filters must match - AND across different tags)
+    // Only apply when there are multiple DIFFERENT tag types (e.g., #e AND #t)
+    // When there's only one tag type with multiple values (e.g., #t:["a","b"]),
+    // the tag index scan already handles the OR correctly
+    if (filter->tags_count > 1) {
+      const uint8_t* tags_data   = buf + sizeof(EventRecord) + rec->content_length;
+      uint16_t       tags_length = rec->tags_length;
+
+      bool all_tags_match = true;
+      for (size_t ti = 0; ti < filter->tags_count; ti++) {
+        if (!tags_match_filter_tag(tags_data, tags_length, &filter->tags[ti])) {
+          all_tags_match = false;
+          break;
+        }
+      }
+      if (!all_tags_match) continue;
     }
 
     // Keep this result
