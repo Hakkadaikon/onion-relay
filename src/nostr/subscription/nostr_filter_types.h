@@ -65,7 +65,8 @@ typedef struct {
   int64_t until;  // 0 = no constraint
 
   // result limit
-  uint32_t limit;  // 0 = use default
+  uint32_t limit;      // 0 = use default (when has_limit is false)
+  bool     has_limit;  // true if limit was explicitly specified in filter
 } NostrFilter, *PNostrFilter;
 
 #endif

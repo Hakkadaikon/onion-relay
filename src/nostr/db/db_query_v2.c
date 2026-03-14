@@ -186,7 +186,7 @@ int32_t nostr_db_result_sort(NostrDBResultSet* rs)
 
 void nostr_db_result_apply_limit(NostrDBResultSet* rs, uint32_t limit)
 {
-  if (is_null(rs) || limit == 0) return;
+  if (is_null(rs)) return;
   if (rs->count > limit) rs->count = limit;
 }
 

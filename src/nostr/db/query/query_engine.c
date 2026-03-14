@@ -189,19 +189,26 @@ NostrDBError query_by_tag(IndexManager* im, const NostrDBFilter* filter,
   require_not_null(filter, NOSTR_DB_ERROR_NULL_PARAM);
   require_not_null(rs, NOSTR_DB_ERROR_NULL_PARAM);
 
-  uint32_t limit = filter->limit > 0 ? filter->limit
-                                     : NOSTR_DB_QUERY_DEFAULT_LIMIT;
-  ScanCtx  ctx   = {rs, limit, filter->since, filter->until, im->pool};
+  // Collect more results than needed since multiple tag values may match
+  // different events. The final limit is applied after sort in query_execute.
+  uint32_t collect_limit = filter->limit > 0
+                             ? filter->limit * (uint32_t)filter->tags[0].values_count
+                             : NOSTR_DB_QUERY_DEFAULT_LIMIT;
+  if (collect_limit < NOSTR_DB_QUERY_DEFAULT_LIMIT) {
+    collect_limit = NOSTR_DB_QUERY_DEFAULT_LIMIT;
+  }
+  ScanCtx ctx = {rs, collect_limit, filter->since, filter->until, im->pool};
 
-  for (size_t i = 0; i < filter->tags_count && rs->count < limit; i++) {
+  for (size_t i = 0; i < filter->tags_count; i++) {
     const NostrDBFilterTag* tag = &filter->tags[i];
 
-    for (size_t j = 0; j < tag->values_count && rs->count < limit; j++) {
+    for (size_t j = 0; j < tag->values_count; j++) {
       uint8_t key[33];
       key[0] = (uint8_t)tag->name;
       internal_memcpy(key + 1, tag->values[j], 32);
 
-      ctx.limit = limit - rs->count;
+      ctx.limit = collect_limit - rs->count;
+      if (ctx.limit == 0) break;
       btree_scan_key(&im->tag_index, key, scan_collect_cb, &ctx);
     }
   }
@@ -418,6 +425,11 @@ NostrDBError query_execute(IndexManager* im, BufferPool* pool,
 
   if (!filter_validate(filter)) {
     return NOSTR_DB_ERROR_INVALID_EVENT;
+  }
+
+  // If limit is explicitly 0, return empty result immediately
+  if (filter->limit == 0) {
+    return NOSTR_DB_OK;
   }
 
   NostrDBQueryStrategy strategy = select_strategy(filter);

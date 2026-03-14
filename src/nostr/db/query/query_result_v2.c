@@ -180,6 +180,6 @@ int32_t query_result_sort(QueryResultSet* rs)
 // ============================================================================
 void query_result_apply_limit(QueryResultSet* rs, uint32_t limit)
 {
-  if (is_null(rs) || limit == 0) return;
+  if (is_null(rs)) return;
   if (rs->count > limit) rs->count = limit;
 }

@@ -1,6 +1,7 @@
 #include "arch/mmap.h"
 #include "nostr/db/db.h"
 #include "nostr/db/query/db_query.h"
+#include "nostr/db/query/db_query_types.h"
 #include "nostr/nostr_func.h"
 #include "nostr/response/nostr_response.h"
 #include "nostr/subscription/nostr_close.h"
@@ -99,7 +100,11 @@ static void convert_filter_to_db_filter(const NostrFilter* src, NostrDBFilter* d
   // Copy time range and limit
   dst->since = src->since;
   dst->until = src->until;
-  dst->limit = src->limit;
+  if (src->has_limit) {
+    dst->limit = src->limit;
+  } else {
+    dst->limit = NOSTR_DB_QUERY_DEFAULT_LIMIT;
+  }
 }
 
 // ============================================================================

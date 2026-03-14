@@ -212,7 +212,9 @@ bool nostr_filter_parse(
     } else if (key_len == 5 && strncmp(key_str, "until", 5)) {
       extract_nostr_filter_until(funcs, json, val_token, &filter->until);
     } else if (key_len == 5 && strncmp(key_str, "limit", 5)) {
-      extract_nostr_filter_limit(funcs, json, val_token, &filter->limit);
+      if (extract_nostr_filter_limit(funcs, json, val_token, &filter->limit)) {
+        filter->has_limit = true;
+      }
     } else if (key_len == 2 && key_str[0] == '#' && filter->tags_count < NOSTR_FILTER_MAX_TAGS) {
       // Tag filter like "#e", "#p", "#t"
       char tag_name = key_str[1];
